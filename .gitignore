@@ -1,0 +1,9 @@
+.idea/
+*.txt
+*.jpg
+*.json
+/RollOut/
+Dist/*.js
+Dist/*.js.map
+/Assets/
+/Ressources/*.zip
