@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <title>Batec Lorraine</title>
+    <meta charset="UTF-8">
+    <link rel="icon" href="favicon.png">
+    <link rel="stylesheet" href="/Assets/element-ui/2.15.12/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="/Assets/web-fonts-with-css.6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="index.css?v=1.0">
+</head>
+
+<body>
+<div id="app" style="height: 100%;">
+    <user-login-modal
+            ref="UserLoginModal"
+            :user.sync="User"
+            @update:user="GetUserSession"
+    ></user-login-modal>
+    <!-- -->
+<!--    <invoice-update-modal-->
+<!--            ref="InvoiceUpdateModal"-->
+<!--            @update_worksite="GetWorkSiteInfos"-->
+<!--    ></invoice-update-modal>-->
+    <!-- -->
+    <admin-modal
+            ref="AdminModal"
+            @reload="GetSiteInfos"
+    ></admin-modal>
+    <!-- -->
+    <el-container style="height: 100%;border: 1px solid #eee">
+        <el-header class="batec" style="height: 40px">
+            <div class="header-menu-container">
+                <el-row :gutter="20" type="flex" align="middle">
+                    <h2 class="content">BATEC Lorraine</h2>
+                </el-row>
+
+                <span></span>
+
+                <el-row :gutter="20" type="flex" align="middle">
+                    <el-button v-if="!User.Connected" type="primary" @click="ShowUserLogin"
+                               icon="far fa-user-circle icon--left icon--medium" size="mini">Login
+                    </el-button>
+                    <el-button v-else type="primary" @click="UserLogout"
+                               icon="fas fa-user-circle icon--left icon--medium" size="mini">{{User.Name}} Logout
+                    </el-button>
+                </el-row>
+            </div>
+        </el-header>
+        <el-main style="height:100%; padding: 0px 0px;">
+            <pre>{{User}}</pre>
+        </el-main>
+    </el-container>
+</div>
+</body>
+
+
+<script src="/Assets/vue/2.5.17/vue.min.js"></script>
+<script src="/Assets/element-ui/2.15.12/lib/index.js"></script>
+<script src="/Assets/element-ui/2.15.12/lib/umd/locale/fr.js"></script>
+<script>
+    ELEMENT.locale(ELEMENT.lang.fr)
+</script>
+<script type="text/javascript" src="index.js?v=1.0"></script>
+
+</html>
