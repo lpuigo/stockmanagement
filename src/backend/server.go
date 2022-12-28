@@ -38,9 +38,9 @@ type Conf struct {
 const (
 	ConfigFile = `./config.json`
 
-	UsersDir       = `C:\Users\Laurent\Golang\src\github.com\lpuig\ewin\doe\Ressources\Users`
-	ActorsDir      = `C:\Users\Laurent\Golang\src\github.com\lpuig\ewin\doe\Ressources\Actors`
-	SaveArchiveDir = `C:\Users\Laurent\Golang\src\github.com\lpuig\ewin\doe\SaveArchive`
+	UsersDir       = `C:\Users\Laurent\Golang\src\github.com\lpuig\batec\stockmanagement\Ressources\Users`
+	ActorsDir      = `C:\Users\Laurent\Golang\src\github.com\lpuig\batec\stockmanagement\Ressources\Actors`
+	SaveArchiveDir = `C:\Users\Laurent\Golang\src\github.com\lpuig\batec\stockmanagement\SaveArchive`
 	SessionKey     = "SECRET_KEY"
 
 	AssetsDir  = `./Assets`

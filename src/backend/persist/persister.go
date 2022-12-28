@@ -120,8 +120,6 @@ func (p *Persister) LoadDirectory(recordType string, recordFactory func(string) 
 
 // HasId returns true if persister contains a record with given id, false otherwise
 func (p *Persister) HasId(id int) bool {
-	p.mut.RLock()
-	defer p.mut.RUnlock()
 	if _, ok := p.records[id]; ok {
 		return true
 	}
@@ -130,8 +128,6 @@ func (p *Persister) HasId(id int) bool {
 
 // GetFilesList returns all the record files contained in persister directory (User class is responsible to Load the record)
 func (p *Persister) GetFilesList(skipdir string) (list []string, err error) {
-	p.mut.RLock()
-	defer p.mut.RUnlock()
 	err = filepath.Walk(p.directory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err

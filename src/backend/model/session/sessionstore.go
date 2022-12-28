@@ -10,7 +10,7 @@ const (
 	sessionName string = "Batec-Session"
 	userId      string = "userid"
 
-	sessionMaxAge int = 86400 * 7
+	sessionMaxAge int = 86400 * 7 // 7 days
 )
 
 type SessionStore struct {
