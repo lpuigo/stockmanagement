@@ -55,6 +55,11 @@ func componentOption() []hvue.ComponentOption {
 			amm := AdminModalModelFromJS(vm.Object)
 			return amm.UsersStore.Users
 		}),
+		hvue.Computed("hasChanged", func(vm *hvue.VM) interface{} {
+			amm := AdminModalModelFromJS(vm.Object)
+			userDirty := amm.UsersStore.Ref.IsDirty()
+			return userDirty
+		}),
 	}
 }
 

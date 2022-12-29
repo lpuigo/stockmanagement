@@ -51,9 +51,10 @@ type MainPageModel struct {
 
 func NewMainPageModel() *MainPageModel {
 	mpm := &MainPageModel{Object: tools.O()}
+	mpm.VM = nil
 	mpm.User = feuser.NewUser()
-	mpm.ClearSiteInfos()
 	mpm.ClearModes()
+	mpm.ClearSiteInfos()
 	//mpm.SetMode()
 
 	return mpm
@@ -71,10 +72,13 @@ func (m *MainPageModel) ClearSiteInfos() {
 // Action Methods
 
 func (m *MainPageModel) GetUserSession() {
+	onUnauthorized := func() {
+		m.ShowUserLogin()
+	}
 	onUserLogged := func() {
 		m.GetInfos()
 	}
-	go m.callGetUser(onUserLogged)
+	go m.callGetUser(onUnauthorized, onUserLogged)
 }
 
 func (m *MainPageModel) ShowUserLogin() {
@@ -97,13 +101,17 @@ func (m *MainPageModel) OpenOtherPage() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // WS call Methods
 
-func (m *MainPageModel) callGetUser(callback func()) {
+func (m *MainPageModel) callGetUser(notloggedCallback, loggedCallback func()) {
 	req := xhr.NewRequest("GET", "/api/login")
 	req.Timeout = tools.LongTimeOut
 	req.ResponseType = xhr.JSON
 	err := req.Send(nil)
 	if err != nil {
 		message.ErrorStr(m.VM, "Oups! "+err.Error(), true)
+		return
+	}
+	if req.Status == tools.HttpUnauthorized {
+		notloggedCallback()
 		return
 	}
 	if req.Status != tools.HttpOK {
@@ -116,7 +124,7 @@ func (m *MainPageModel) callGetUser(callback func()) {
 		return
 	}
 	m.User.Connected = true
-	callback()
+	loggedCallback()
 }
 
 func (m *MainPageModel) callLogout() {

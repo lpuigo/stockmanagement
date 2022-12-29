@@ -25,7 +25,7 @@
     <!-- -->
     <admin-modal
             ref="AdminModal"
-            @reload="GetSiteInfos"
+            @reload="GetInfos"
     ></admin-modal>
     <!-- -->
     <el-container style="height: 100%;border: 1px solid #eee">
@@ -47,7 +47,7 @@
                 </el-row>
             </div>
         </el-header>
-        <el-main style="height:100%; padding: 0px 0px;">
+        <el-main v-if="User.Connected" style="height:100%; padding: 0px 0px;">
             <pre>{{User}}</pre>
         </el-main>
     </el-container>
