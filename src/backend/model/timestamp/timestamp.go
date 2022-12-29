@@ -13,13 +13,13 @@ type TimeStamp struct {
 
 // SetCreateDate set CreateDate for receiver, based on Today' date
 func (a *TimeStamp) SetCreateDate() {
-	a.CTime = date.Today().TimeStampShort()
+	a.CTime = date.Now().TimeStampShort()
 	a.UTime = a.CTime
 }
 
 // SetUpdateDate set UpdateDate for receiver, based on Today' date
 func (a *TimeStamp) SetUpdateDate() {
-	a.UTime = date.Today().TimeStampShort()
+	a.UTime = date.Now().TimeStampShort()
 }
 
 // SetUpdateDateFrom set UpdateDate for receiver, based on given time.Time
@@ -29,5 +29,5 @@ func (a *TimeStamp) SetUpdateDateFrom(t time.Time) {
 
 // SetCreateDate set CreateDate for receiver, based on Today' date
 func (a *TimeStamp) SetDeleteDate() {
-	a.DTime = date.Today().TimeStampShort()
+	a.DTime = date.Now().TimeStampShort()
 }

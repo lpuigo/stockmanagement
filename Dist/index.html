@@ -36,6 +36,16 @@
                 </el-row>
 
                 <span></span>
+                <span></span>
+                <span></span>
+                <el-button-group>
+                    <el-tooltip v-if="User.Permissions.Admin" content="Administration ..."
+                                placement="bottom" effect="light" open-delay=500>
+                        <el-button class="icon" icon="fas fa-wrench icon--big"
+                                   @click="ShowAdmin" size="mini"></el-button>
+                    </el-tooltip>
+                </el-button-group>
+                <span></span>
 
                 <el-row :gutter="20" type="flex" align="middle">
                     <el-button v-if="!User.Connected" type="primary" @click="ShowUserLogin"
@@ -47,6 +57,7 @@
                 </el-row>
             </div>
         </el-header>
+
         <el-main v-if="User.Connected" style="height:100%; padding: 0px 0px;">
             <pre>{{User}}</pre>
         </el-main>

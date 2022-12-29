@@ -71,10 +71,10 @@ func (m *Manager) Reload() error {
 
 func (m *Manager) SaveArchive() error {
 	failed := ""
-	saveArchive := func(sites persist.ArchivableRecordContainer) {
-		err := persist.SaveRecordsArchive(m.Config.SaveArchiveDir, sites)
+	saveArchive := func(container persist.ArchivableRecordContainer) {
+		err := persist.SaveRecordsArchive(m.Config.SaveArchiveDir, container)
 		if err != nil {
-			failed += " " + sites.GetName()
+			failed += " " + fmt.Sprintf("%s (%s)", container.GetName(), err.Error())
 		}
 	}
 	saveArchive(m.Actors)

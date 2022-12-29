@@ -85,6 +85,10 @@ func (m *MainPageModel) ShowUserLogin() {
 	m.VM.Refs("UserLoginModal").Call("Show", m.User)
 }
 
+func (m *MainPageModel) ShowAdmin() {
+	m.VM.Refs("AdminModal").Call("Show", m.User)
+}
+
 func (m *MainPageModel) UserLogout() {
 	go m.callLogout()
 }

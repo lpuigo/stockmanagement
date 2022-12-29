@@ -58,6 +58,7 @@ pre {
     display: none;
 }
 
+
 /*.el-table .cell {*/
 
 /*}*/
@@ -112,6 +113,47 @@ pre {
     margin-top: 20px;
     margin-bottom: 5px;
 }
+
+/*  ====================================================================================================================
+    === Edit Worksite Modal style
+ */
+.el-dialog__header {
+    background: #F6BF32;
+    color: #1F2B3C;
+    border-bottom: 1px solid #e1e4eb
+}
+
+.el-dialog__body {
+    padding: 5px 2px 5px 5px;
+}
+
+.form-row {
+    /*margin: 5px 5px;*/
+    padding: 8px 0;
+}
+
+.el-dialog__footer {
+    border-top: 1px solid #e1e4eb
+}
+
+.fluid-select {
+    display: block;
+}
+
+.fluid-input {
+    width: 100%;
+}
+
+.form-textarea .el-textarea__inner {
+    font-family: inherit;
+    line-height: 1.2em;
+}
+
+.el-dropdown-menu.el-popper {
+    max-height: 33vh;
+    overflow: auto;
+}
+
 
 /* =====================================================================================================================
    === Message Box style
@@ -368,46 +410,6 @@ pre {
     margin-left: 5px;
     margin-right: 5px;
     margin-bottom: 0px;
-}
-
-/*  ====================================================================================================================
-    === Edit Worksite Modal style
- */
-.el-dialog__header {
-    background: #66a0cc;
-    color: white;
-    border-bottom: 1px solid #e1e4eb
-}
-
-.el-dialog__body {
-    padding: 5px 2px 5px 5px;
-}
-
-.form-row {
-    /*margin: 5px 5px;*/
-    padding: 8px 0;
-}
-
-.el-dialog__footer {
-    border-top: 1px solid #e1e4eb
-}
-
-.fluid-select {
-    display: block;
-}
-
-.fluid-input {
-    width: 100%;
-}
-
-.form-textarea .el-textarea__inner {
-    font-family: inherit;
-    line-height: 1.2em;
-}
-
-.el-dropdown-menu.el-popper {
-    max-height: 33vh;
-    overflow: auto;
 }
 
 /* ====================================================================================================================
