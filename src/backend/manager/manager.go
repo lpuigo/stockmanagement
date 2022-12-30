@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"github.com/lpuig/batec/stockmanagement/src/backend/logger"
 	"github.com/lpuig/batec/stockmanagement/src/backend/model/actor"
+	"github.com/lpuig/batec/stockmanagement/src/backend/model/article"
 	"github.com/lpuig/batec/stockmanagement/src/backend/model/session"
 	"github.com/lpuig/batec/stockmanagement/src/backend/model/user"
 	"github.com/lpuig/batec/stockmanagement/src/backend/persist"
 )
 
 type Manager struct {
-	Users  *user.UsersPersister
-	Actors *actor.ActorsPersister
+	Users    *user.UsersPersister
+	Actors   *actor.ActorsPersister
+	Articles *article.ArticlesPersister
 
 	SessionStore *session.SessionStore
 	CurrentUser  *user.UserRecord
@@ -27,15 +29,22 @@ func NewManager(conf ManagerConfig) (*Manager, error) {
 	}
 
 	// Init Actors persister
-	ap, err := actor.NewActorsPersister(conf.ActorsDir)
+	acp, err := actor.NewActorsPersister(conf.ActorsDir)
 	if err != nil {
 		return nil, fmt.Errorf("could not create actors: %s", err.Error())
+	}
+
+	// Init Articles persister
+	arp, err := article.NewArticlesPersister(conf.ArticlesDir)
+	if err != nil {
+		return nil, fmt.Errorf("could not create articles: %s", err.Error())
 	}
 
 	// Init manager
 	m := &Manager{
 		Users:        up,
-		Actors:       ap,
+		Actors:       acp,
+		Articles:     arp,
 		SessionStore: session.NewSessionStore(conf.SessionKey),
 		//CurrentUser: is set during session control transaction
 		Config: conf,
@@ -66,6 +75,12 @@ func (m *Manager) Reload() error {
 	}
 	logger.Entry("Server").LogInfo(fmt.Sprintf("loaded %d Actors", m.Actors.NbActors()))
 
+	err = m.Articles.LoadDirectory()
+	if err != nil {
+		return fmt.Errorf("could not populate article: %s", err.Error())
+	}
+	logger.Entry("Server").LogInfo(fmt.Sprintf("loaded %d Articles", m.Actors.NbActors()))
+
 	return nil
 }
 
@@ -77,6 +92,7 @@ func (m *Manager) SaveArchive() error {
 			failed += " " + fmt.Sprintf("%s (%s)", container.GetName(), err.Error())
 		}
 	}
+	saveArchive(m.Articles)
 	saveArchive(m.Actors)
 	saveArchive(m.Users)
 	if failed != "" {

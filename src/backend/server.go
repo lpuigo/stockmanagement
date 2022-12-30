@@ -40,6 +40,7 @@ const (
 
 	UsersDir       = `C:\Users\Laurent\Golang\src\github.com\lpuig\batec\stockmanagement\Ressources\Users`
 	ActorsDir      = `C:\Users\Laurent\Golang\src\github.com\lpuig\batec\stockmanagement\Ressources\Actors`
+	ArticlesDir    = `C:\Users\Laurent\Golang\src\github.com\lpuig\batec\stockmanagement\Ressources\Articles`
 	SaveArchiveDir = `C:\Users\Laurent\Golang\src\github.com\lpuig\batec\stockmanagement\SaveArchive`
 	SessionKey     = "SECRET_KEY"
 
@@ -105,6 +106,10 @@ func createRouter(mgr *manager.Manager, conf *Conf) http.Handler {
 	router.HandleFunc("/api/actors", withUserManager("GetActors", route.GetActors)).Methods("GET")
 	router.HandleFunc("/api/actors", withUserManager("UpdateActors", route.UpdateActors)).Methods("PUT")
 
+	// Articles methods
+	router.HandleFunc("/api/articles", withUserManager("GetArticles", route.GetArticles)).Methods("GET")
+	router.HandleFunc("/api/articles", withUserManager("UpdateArticles", route.UpdateArticles)).Methods("PUT")
+
 	// Administration methods
 	router.HandleFunc("/api/admin/reload", withUserManager("ReloadPersister", route.ReloadPersister)).Methods("GET")
 
@@ -152,6 +157,7 @@ func main() {
 		ManagerConfig: manager.ManagerConfig{
 			UsersDir:       UsersDir,
 			ActorsDir:      ActorsDir,
+			ArticlesDir:    ArticlesDir,
 			SaveArchiveDir: SaveArchiveDir,
 			SessionKey:     SessionKey,
 		},
