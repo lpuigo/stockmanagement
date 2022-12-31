@@ -41,6 +41,9 @@ const (
 	UsersDir       = `C:\Users\Laurent\Golang\src\github.com\lpuig\batec\stockmanagement\Ressources\Users`
 	ActorsDir      = `C:\Users\Laurent\Golang\src\github.com\lpuig\batec\stockmanagement\Ressources\Actors`
 	ArticlesDir    = `C:\Users\Laurent\Golang\src\github.com\lpuig\batec\stockmanagement\Ressources\Articles`
+	MovementsDir   = `C:\Users\Laurent\Golang\src\github.com\lpuig\batec\stockmanagement\Ressources\Movements`
+	WorksitesDir   = `C:\Users\Laurent\Golang\src\github.com\lpuig\batec\stockmanagement\Ressources\Worksites`
+	StocksDir      = `C:\Users\Laurent\Golang\src\github.com\lpuig\batec\stockmanagement\Ressources\Stocks`
 	SaveArchiveDir = `C:\Users\Laurent\Golang\src\github.com\lpuig\batec\stockmanagement\SaveArchive`
 	SessionKey     = "SECRET_KEY"
 
@@ -110,6 +113,18 @@ func createRouter(mgr *manager.Manager, conf *Conf) http.Handler {
 	router.HandleFunc("/api/articles", withUserManager("GetArticles", route.GetArticles)).Methods("GET")
 	router.HandleFunc("/api/articles", withUserManager("UpdateArticles", route.UpdateArticles)).Methods("PUT")
 
+	// Movements methods
+	router.HandleFunc("/api/movements", withUserManager("GetMovements", route.GetMovements)).Methods("GET")
+	router.HandleFunc("/api/movements", withUserManager("UpdateMovements", route.UpdateMovements)).Methods("PUT")
+
+	// Worksites methods
+	router.HandleFunc("/api/worksites", withUserManager("GetWorksites", route.GetWorksites)).Methods("GET")
+	router.HandleFunc("/api/worksites", withUserManager("UpdateWorksites", route.UpdateWorksites)).Methods("PUT")
+
+	// Stocks methods
+	router.HandleFunc("/api/stocks", withUserManager("GetStocks", route.GetStocks)).Methods("GET")
+	router.HandleFunc("/api/stocks", withUserManager("UpdateStocks", route.UpdateStocks)).Methods("PUT")
+
 	// Administration methods
 	router.HandleFunc("/api/admin/reload", withUserManager("ReloadPersister", route.ReloadPersister)).Methods("GET")
 
@@ -158,6 +173,9 @@ func main() {
 			UsersDir:       UsersDir,
 			ActorsDir:      ActorsDir,
 			ArticlesDir:    ArticlesDir,
+			MovementsDir:   MovementsDir,
+			WorksitesDir:   WorksitesDir,
+			StocksDir:      StocksDir,
 			SaveArchiveDir: SaveArchiveDir,
 			SessionKey:     SessionKey,
 		},
