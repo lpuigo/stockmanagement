@@ -1,4 +1,4 @@
-package date
+package fedate
 
 import (
 	"github.com/gopherjs/gopherjs/js"
