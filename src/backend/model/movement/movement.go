@@ -6,10 +6,9 @@ import (
 )
 
 type Movement struct {
-	Id      int
-	StockId int
-	Type    string
-
+	Id            int
+	StockId       int
+	Type          string
 	Date          string
 	Actor         string
 	Responsible   string
