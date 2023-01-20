@@ -4,6 +4,7 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/adminmodal"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/userloginmodal"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements/message"
@@ -45,6 +46,8 @@ type MainPageModel struct {
 	VM *hvue.VM `js:"VM"`
 
 	User *feuser.User `js:"User"`
+
+	AvailableArticles *fearticle.ArticleStore `js:"AvailableArticles"`
 
 	ActiveMode string `js:"ActiveMode"`
 }
@@ -94,7 +97,8 @@ func (m *MainPageModel) UserLogout() {
 }
 
 func (m *MainPageModel) GetInfos() {
-	//go m.callGetPoleSiteInfos()
+	onSuccess := func() {}
+	m.AvailableArticles.CallGetArticles(m.VM, onSuccess)
 }
 
 // OpenOtherPage template to open some feature in another web page
