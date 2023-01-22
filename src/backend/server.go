@@ -123,6 +123,7 @@ func createRouter(mgr *manager.Manager, conf *Conf) http.Handler {
 
 	// Stocks methods
 	router.HandleFunc("/api/stocks", withUserManager("GetStocks", route.GetStocks)).Methods("GET")
+	router.HandleFunc("/api/stocks/{sid:[0-9]+}", withUserManager("GetStockById", route.GetStockById)).Methods("GET")
 	router.HandleFunc("/api/stocks", withUserManager("UpdateStocks", route.UpdateStocks)).Methods("PUT")
 
 	// Administration methods

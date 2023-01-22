@@ -28,6 +28,31 @@ func NewStockStore() *StockStore {
 	return ss
 }
 
+func (ss *StockStore) CallGetStockById(vm *hvue.VM, sid int, onSuccess func()) {
+	go ss.callGetStockById(vm, sid, onSuccess)
+}
+
+func (ss *StockStore) callGetStockById(vm *hvue.VM, sid int, onSuccess func()) {
+	req := xhr.NewRequest("GET", "/api/stocks/"+strconv.Itoa(sid))
+	req.Timeout = tools.LongTimeOut
+	req.ResponseType = xhr.JSON
+
+	err := req.Send(nil)
+	if err != nil {
+		message.ErrorStr(vm, "Oups! "+err.Error(), true)
+		return
+	}
+	if req.Status != tools.HttpOK {
+		message.ErrorRequestMessage(vm, req)
+		return
+	}
+	loadedStock := StockFromJS(req.Response)
+	//ss.Get("Stocks").Call("push", loadedStock)
+	ss.Stocks = append(ss.Stocks, loadedStock)
+	ss.Ref.SetReference()
+	onSuccess()
+}
+
 func (ss *StockStore) CallGetStocks(vm *hvue.VM, onSuccess func()) {
 	go ss.callGetStocks(vm, onSuccess)
 }

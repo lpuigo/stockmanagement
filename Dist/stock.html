@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <title>Stock</title>
+    <meta charset="UTF-8">
+    <link rel="icon" href="favicon.png">
+    <link rel="stylesheet" href="/Assets/element-ui/2.15.12/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="/Assets/web-fonts-with-css.6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="index.css?v=1.0">
+</head>
+
+<body>
+<div id="stock_app" v-cloak style="height: 100%;">
+    <!-- -->
+    <el-container style="height: 100%;border: 1px solid #eee">
+        <el-header class="batec" style="height: 40px">
+            <div class="header-menu-container">
+                <el-row :gutter="20" type="flex" align="middle">
+                    <h2 class="content"><i class="fa-solid fa-warehouse icon--left"></i>{{Title}}</h2>
+                </el-row>
+
+                <el-button-group>
+                    <el-tooltip v-if="User.Permissions.Update" content="Enregistrer les modifications"
+                                placement="bottom" effect="light" open-delay="500">
+                        <el-button class="icon" icon="fas fa-cloud-upload-alt icon--big" @click="SaveStock"
+                                   :disabled="!(!SaveInProgress && IsDirty)" size="mini"></el-button>
+                    </el-tooltip>
+                    <el-tooltip content="Raffraichir / Annuler les modifications" placement="bottom" effect="light"
+                                open-delay="500">
+                        <el-button class="icon" icon="fas fa-undo-alt icon--big" @click="LoadStock(true)"
+                                   :disabled="SaveInProgress" size="mini"></el-button>
+                    </el-tooltip>
+                </el-button-group>
+
+
+                <span></span>
+                <span></span>
+
+                <!-- ====================	Mode selection  ============================== -->
+                <el-radio-group v-model="ActiveMode" @change="SwitchActiveMode" size="mini">
+                    <el-tooltip content="Catalogue d'Articles" placement="bottom" effect="light" open-delay="500"
+                                class="rd-middle-screen">
+                        <el-radio-button label="article"><i class="fa-solid fa-boxes-packing icon--big"></i>
+                        </el-radio-button>
+                    </el-tooltip>
+                    <el-tooltip content="Gestion des Stocks" placement="bottom" effect="light" open-delay="500">
+                        <el-radio-button label="stock"><i class="fa-solid fa-warehouse icon--big"></i></el-radio-button>
+                    </el-tooltip>
+                </el-radio-group>
+
+                <span></span>
+                <span></span>
+                <span></span>
+
+                <div class="rd-large-screen">
+                    <span v-if="!User.Connected"><i class="far fa-user-circle icon--left icon--medium"></i>{{LoggedUser}}</span>
+                    <span v-else><i class="fas fa-user-circle icon--left icon--medium"></i>{{LoggedUser}}</span>
+                </div>
+            </div>
+        </el-header>
+
+        <el-main v-if="User.Connected" style="height:100%; padding: 15px 10px; ">
+
+            <pre>{{Stock}}</pre>
+
+        </el-main>
+    </el-container>
+</div>
+</body>
+
+
+<script src="/Assets/vue/2.5.17/vue.min.js"></script>
+<script src="/Assets/element-ui/2.15.12/lib/index.js"></script>
+<script src="/Assets/element-ui/2.15.12/lib/umd/locale/fr.js"></script>
+<script>
+    ELEMENT.locale(ELEMENT.lang.fr)
+</script>
+<script type="text/javascript" src="stock.js?v=1.0"></script>
+
+</html>

@@ -37,7 +37,22 @@
 
                 <span></span>
                 <span></span>
+
+                <!-- ====================	Mode selection  ============================== -->
+                <el-radio-group v-model="ActiveMode" @change="SwitchActiveMode" size="mini">
+                    <el-tooltip content="Catalogue d'Articles" placement="bottom" effect="light" open-delay="500"
+                                class="rd-middle-screen">
+                        <el-radio-button label="article"><i class="fa-solid fa-boxes-packing icon--big"></i>
+                        </el-radio-button>
+                    </el-tooltip>
+                    <el-tooltip content="Gestion des Stocks" placement="bottom" effect="light" open-delay="500">
+                        <el-radio-button label="stock"><i class="fa-solid fa-warehouse icon--big"></i></el-radio-button>
+                    </el-tooltip>
+                </el-radio-group>
+
                 <span></span>
+                <span></span>
+
                 <el-button-group>
                     <el-tooltip v-if="User.Permissions.Admin" content="Administration ..."
                                 placement="bottom" effect="light" open-delay=500>
@@ -45,6 +60,7 @@
                                    @click="ShowAdmin" size="mini"></el-button>
                     </el-tooltip>
                 </el-button-group>
+
                 <span></span>
 
                 <el-row :gutter="20" type="flex" align="middle">
@@ -58,12 +74,30 @@
             </div>
         </el-header>
 
-        <el-main v-if="User.Connected" style="height:100%; padding: 0px 0px;">
-            <articles-table
-                    v-model="AvailableArticles"
-                    :user="User"
-                    :filter="Filter" :filtertype="FilterType"
-            ></articles-table>
+        <el-main v-if="User.Connected" style="height:100%; padding: 15px 10px; ">
+
+            <!-- ====================	Articles catalog description  ============================== -->
+            <div v-if="ActiveMode == 'article'" style="height: 100%">
+                <articles-table
+                        v-model="AvailableArticles"
+                        :user="User"
+                        :filter="Filter" :filtertype="FilterType"
+                ></articles-table>
+            </div>
+
+            <!-- ====================	Stock description  ============================== -->
+            <div v-if="ActiveMode == 'stock'" style="padding: 50px 150px">
+                <div v-for="stock in AvailableStocks.Stocks" :key="stock.Id"
+                     @click="OpenStockPage(stock)"
+                >
+                    <el-row class="stock-selector link-cursor shadow-effect" :gutter="5" type="flex" align="middle">
+                        <el-col :span="3"><i class="fa-solid fa-warehouse fa-6x"></i></el-col>
+                        <el-col :span="10"><h2>{{stock.Ref}}</h2></el-col>
+                        <el-col :span="10" class="align-right">action</el-col>
+                    </el-row>
+                </div>
+            </div>
+
         </el-main>
     </el-container>
 </div>

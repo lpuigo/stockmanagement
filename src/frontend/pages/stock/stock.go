@@ -2,18 +2,13 @@ package main
 
 import (
 	"github.com/gopherjs/gopherjs/js"
-	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/adminmodal"
-	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/articletable"
-	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/userloginmodal"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle"
-	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle/articleconst"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festock"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements/message"
 	"github.com/lpuigo/hvue"
 	"honnef.co/go/js/xhr"
-	"strconv"
 )
 
 //go:generate bash ./makejs.sh
@@ -22,15 +17,21 @@ func main() {
 	mpm := NewMainPageModel()
 
 	hvue.NewVM(
-		hvue.El("#app"),
-		userloginmodal.RegisterComponent(),
-		adminmodal.RegisterComponent(),
-		articletable.RegisterComponent(),
+		hvue.El("#stock_app"),
 		hvue.DataS(mpm),
 		hvue.MethodsOf(mpm),
 		hvue.Mounted(func(vm *hvue.VM) {
 			mpm := &MainPageModel{Object: vm.Object}
-			mpm.GetUserSession()
+			mpm.GetUserSession(func() {
+				mpm.LoadStock(vm)
+			})
+		}),
+		hvue.Computed("Title", func(vm *hvue.VM) interface{} {
+			mpm := &MainPageModel{Object: vm.Object}
+			if mpm.Stock.Object == js.Undefined {
+				return ""
+			}
+			return "BATEC " + mpm.Stock.Ref
 		}),
 		hvue.Computed("LoggedUser", func(vm *hvue.VM) interface{} {
 			mpm := &MainPageModel{Object: vm.Object}
@@ -38,6 +39,10 @@ func main() {
 				return "Non connecté"
 			}
 			return mpm.User.Name
+		}),
+		hvue.Computed("IsDirty", func(vm *hvue.VM) interface{} {
+			mpm := &MainPageModel{Object: vm.Object}
+			return mpm.StockStore.Ref.IsDirty()
 		}),
 	)
 
@@ -48,78 +53,66 @@ func main() {
 type MainPageModel struct {
 	*js.Object
 
-	VM *hvue.VM `js:"VM"`
-
+	VM   *hvue.VM     `js:"VM"`
 	User *feuser.User `js:"User"`
 
 	AvailableArticles *fearticle.ArticleStore `js:"AvailableArticles"`
-	AvailableStocks   *festock.StockStore     `js:"AvailableStocks"`
+	StockStore        *festock.StockStore     `js:"StockStore"`
+	Stock             *festock.Stock          `js:"Stock"`
+	SaveInProgress    bool                    `js:"SaveInProgress"`
 
 	ActiveMode string `js:"ActiveMode"`
-
 	Filter     string `js:"Filter"`
 	FilterType string `js:"FilterType"`
 }
 
 func NewMainPageModel() *MainPageModel {
-	mpm := &MainPageModel{Object: tools.O()}
-	mpm.VM = nil
-	mpm.User = feuser.NewUser()
-	mpm.AvailableArticles = fearticle.NewArticleStore()
-	mpm.AvailableStocks = festock.NewStockStore()
-	mpm.ClearModes()
-	mpm.ClearSiteInfos()
-	//mpm.SetMode()
+	m := &MainPageModel{Object: tools.O()}
+	m.VM = nil
+	m.User = feuser.NewUser()
 
-	return mpm
-}
+	m.AvailableArticles = fearticle.NewArticleStore()
+	m.StockStore = festock.NewStockStore()
+	m.Stock = festock.NewStock()
+	m.SaveInProgress = false
 
-func (m *MainPageModel) ClearModes() {
-	m.ActiveMode = "stock"
+	m.ActiveMode = ""
 	m.Filter = ""
-	m.FilterType = articleconst.FilterValueAll
-}
+	m.FilterType = ""
 
-func (m *MainPageModel) ClearSiteInfos() {
-	//m.WorksiteInfos = []*fm.WorksiteInfo{}
+	return m
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Action Methods
 
-func (m *MainPageModel) GetUserSession() {
-	onUnauthorized := func() {
-		m.ShowUserLogin()
+func (m *MainPageModel) LoadStock(vm *hvue.VM) {
+	m = &MainPageModel{Object: vm.Object}
+	sid := tools.GetURLSearchParam("sid")
+	if sid == nil {
+		message.ErrorMsgStr(m.VM, "Identifiant de stock non trouvé", sid, true)
+		return
 	}
-	onUserLogged := func() {
-		m.GetInfos()
+	onLoaded := func() {
+		if len(m.StockStore.Stocks) > 0 {
+			m.Stock = m.StockStore.Stocks[0]
+			js.Global.Get("document").Set("title", m.Stock.Ref)
+		}
 	}
-	go m.callGetUser(onUnauthorized, onUserLogged)
+	m.StockStore.CallGetStockById(m.VM, sid.Int(), onLoaded)
 }
 
-func (m *MainPageModel) ShowUserLogin() {
-	m.VM.Refs("UserLoginModal").Call("Show", m.User)
-}
-
-func (m *MainPageModel) ShowAdmin() {
-	m.VM.Refs("AdminModal").Call("Show", m.User)
-}
-
-func (m *MainPageModel) UserLogout() {
-	go m.callLogout()
-}
-
-func (m *MainPageModel) GetInfos() {
-	onSuccessArticles := func() {}
-	m.AvailableArticles.CallGetArticles(m.VM, onSuccessArticles)
-	onSuccessStocks := func() {}
-	m.AvailableStocks.CallGetStocks(m.VM, onSuccessStocks)
-}
-
-// OpenStockPage opens another web page for stock management
-func (m *MainPageModel) OpenStockPage(stock *festock.Stock) {
-	pageUrl := "stock.html?sid=" + strconv.Itoa(stock.Id)
-	js.Global.Get("window").Call("open", pageUrl)
+func (m *MainPageModel) SaveStock(vm *hvue.VM) {
+	m = &MainPageModel{Object: vm.Object}
+	m.SaveInProgress = true
+	onUpdated := func() {
+		if len(m.StockStore.Stocks) > 0 {
+			m.Stock = m.StockStore.Stocks[0]
+			js.Global.Get("document").Set("title", m.Stock.Ref)
+		}
+		m.SaveInProgress = false
+	}
+	m.StockStore.CallUpdateStocks(m.VM, onUpdated)
 }
 
 // SwitchActiveMode handles ActiveMode change
@@ -131,6 +124,17 @@ func (m *MainPageModel) SwitchActiveMode(vm *hvue.VM) {
 	//case "stock":
 	//	// do something specific
 	//}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// User Management Methods
+
+func (m *MainPageModel) GetUserSession(callback func()) {
+	onUnauthorized := func() {}
+	onUserLogged := func() {
+		callback()
+	}
+	go m.callGetUser(onUnauthorized, onUserLogged)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -162,7 +166,7 @@ func (m *MainPageModel) callGetUser(notloggedCallback, loggedCallback func()) {
 	loggedCallback()
 }
 
-func (m *MainPageModel) callLogout() {
+func (m *MainPageModel) callLogout(callBack func()) {
 	req := xhr.NewRequest("DELETE", "/api/login")
 	req.Timeout = tools.LongTimeOut
 	req.ResponseType = xhr.JSON
@@ -177,6 +181,5 @@ func (m *MainPageModel) callLogout() {
 	}
 	m.User = feuser.NewUser()
 	m.User.Connected = false
-	m.ClearSiteInfos()
-	m.ClearModes()
+	callBack()
 }
