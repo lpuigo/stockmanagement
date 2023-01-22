@@ -3,8 +3,10 @@ package main
 import (
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/adminmodal"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/articletable"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/userloginmodal"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle/articleconst"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements/message"
@@ -21,6 +23,7 @@ func main() {
 		hvue.El("#app"),
 		userloginmodal.RegisterComponent(),
 		adminmodal.RegisterComponent(),
+		articletable.RegisterComponent(),
 		hvue.DataS(mpm),
 		hvue.MethodsOf(mpm),
 		hvue.Mounted(func(vm *hvue.VM) {
@@ -50,12 +53,16 @@ type MainPageModel struct {
 	AvailableArticles *fearticle.ArticleStore `js:"AvailableArticles"`
 
 	ActiveMode string `js:"ActiveMode"`
+
+	Filter     string `js:"Filter"`
+	FilterType string `js:"FilterType"`
 }
 
 func NewMainPageModel() *MainPageModel {
 	mpm := &MainPageModel{Object: tools.O()}
 	mpm.VM = nil
 	mpm.User = feuser.NewUser()
+	mpm.AvailableArticles = fearticle.NewArticleStore()
 	mpm.ClearModes()
 	mpm.ClearSiteInfos()
 	//mpm.SetMode()
@@ -65,6 +72,8 @@ func NewMainPageModel() *MainPageModel {
 
 func (m *MainPageModel) ClearModes() {
 	m.ActiveMode = ""
+	m.Filter = ""
+	m.FilterType = articleconst.FilterValueAll
 }
 
 func (m *MainPageModel) ClearSiteInfos() {

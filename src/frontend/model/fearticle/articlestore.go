@@ -15,6 +15,7 @@ type ArticleStore struct {
 	*js.Object
 
 	Articles []*Article `js:"Articles"`
+	Loaded   bool       `js:"Loaded"`
 
 	Ref *ref.Ref `js:"Ref"`
 }
@@ -22,6 +23,7 @@ type ArticleStore struct {
 func NewArticleStore() *ArticleStore {
 	as := &ArticleStore{Object: tools.O()}
 	as.Articles = []*Article{}
+	as.Loaded = false
 	as.Ref = ref.NewRef(func() string {
 		return json.Stringify(as.Articles)
 	})
@@ -53,6 +55,7 @@ func (as *ArticleStore) callGetArticles(vm *hvue.VM, onSuccess func()) {
 	})
 	as.Articles = loadedArticles
 	as.Ref.SetReference()
+	as.Loaded = true
 	onSuccess()
 }
 

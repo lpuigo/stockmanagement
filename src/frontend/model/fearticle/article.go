@@ -2,7 +2,9 @@ package fearticle
 
 import (
 	"github.com/gopherjs/gopherjs/js"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle/articleconst"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements"
 )
 
 // type Article reflects backend/model/article.Article
@@ -48,4 +50,30 @@ func NewArticle() *Article {
 
 func ArticleFromJS(o *js.Object) *Article {
 	return &Article{Object: o}
+}
+
+func (a *Article) SearchString(filter string) string {
+	searchItem := func(prefix, typ, value string) string {
+		if value == "" {
+			return ""
+		}
+		if filter != articleconst.FilterLabelAll && filter != typ {
+			return ""
+		}
+		return prefix + typ + value
+	}
+
+	res := searchItem("", articleconst.FilterValueDes, a.Designation)
+	res += searchItem("", articleconst.FilterValueRef, a.Ref)
+	res += searchItem("", articleconst.FilterValueCat, a.Category)
+	return res
+}
+
+func GetFilterTypeValueLabel() []*elements.ValueLabel {
+	return []*elements.ValueLabel{
+		elements.NewValueLabel(articleconst.FilterValueAll, articleconst.FilterLabelAll),
+		elements.NewValueLabel(articleconst.FilterValueDes, articleconst.FilterLabelDes),
+		elements.NewValueLabel(articleconst.FilterValueRef, articleconst.FilterLabelRef),
+		elements.NewValueLabel(articleconst.FilterValueCat, articleconst.FilterLabelCat),
+	}
 }

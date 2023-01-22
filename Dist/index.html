@@ -59,7 +59,11 @@
         </el-header>
 
         <el-main v-if="User.Connected" style="height:100%; padding: 0px 0px;">
-            <pre>{{User}}</pre>
+            <articles-table
+                    v-model="AvailableArticles"
+                    :user="User"
+                    :filter="Filter" :filtertype="FilterType"
+            ></articles-table>
         </el-main>
     </el-container>
 </div>
