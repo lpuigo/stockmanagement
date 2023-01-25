@@ -37,3 +37,14 @@ func NewStock() *Stock {
 func StockFromJS(o *js.Object) *Stock {
 	return &Stock{Object: o}
 }
+
+// GenGetById returns a HasArticleById func, which, given an article Id, returns true if the pertaining article is in the receiver stock
+func (s *Stock) GenHasArticleById() func(id int) bool {
+	dict := make(map[int]bool)
+	for _, articleId := range s.Articles {
+		dict[articleId] = true
+	}
+	return func(id int) bool {
+		return dict[id]
+	}
+}

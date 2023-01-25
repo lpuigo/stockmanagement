@@ -23,14 +23,16 @@ func Test_AddNEwStock(t *testing.T) {
 	t.Logf("Loaded %d stocks\n", sp.NbStocks())
 	sp.NoDelay()
 
-	ns := &Stock{
-		Id:         -1,
-		Ref:        "Stock secondaire",
-		Articles:   []int{},
-		Movements:  []*movement.Movement{},
-		Quantities: make(map[int]int),
-		TimeStamp:  timestamp.TimeStamp{},
+	for _, stockName := range []string{"Stock principal", "Stock secondaire"} {
+		ns := &Stock{
+			Id:         -1,
+			Ref:        stockName,
+			Articles:   []int{},
+			Movements:  []*movement.Movement{},
+			Quantities: make(map[int]int),
+			TimeStamp:  timestamp.TimeStamp{},
+		}
+		sr := sp.Add(NewStockRecordFromStock(ns))
+		t.Logf("Add new stock Id %d\n", sr.Id)
 	}
-	sr := sp.Add(NewStockRecordFromStock(ns))
-	t.Logf("Add new stock Id %d\n", sr.Id)
 }

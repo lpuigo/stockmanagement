@@ -6,6 +6,7 @@ const (
 
 	StatusLabelAvailable   string = "Disponible"
 	StatusLabelUnavailable string = "Indisponible"
+	StatusLabelError       string = "Status inconnu"
 
 	FilterValueAll string = ""
 	FilterValueDes string = "DES:"

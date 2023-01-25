@@ -8,6 +8,7 @@ import (
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/json"
 	"github.com/lpuigo/hvue"
 	"honnef.co/go/js/xhr"
+	"sort"
 	"strconv"
 )
 
@@ -76,6 +77,11 @@ func (ss *StockStore) callGetStocks(vm *hvue.VM, onSuccess func()) {
 		w := StockFromJS(item)
 		loadedStocks = append(loadedStocks, w)
 	})
+
+	sort.Slice(loadedStocks, func(i, j int) bool {
+		return loadedStocks[i].Ref < loadedStocks[j].Ref
+	})
+
 	ss.Stocks = loadedStocks
 	ss.Ref.SetReference()
 	onSuccess()

@@ -30,6 +30,17 @@ func NewArticleStore() *ArticleStore {
 	return as
 }
 
+// GenGetById returns a GetByArticleId func, which, given an article Id, returns the pertaining article if exists, or null
+func (as *ArticleStore) GenGetById() func(id int) *Article {
+	dict := make(map[int]*Article)
+	for _, article := range as.Articles {
+		dict[article.Id] = article
+	}
+	return func(id int) *Article {
+		return dict[id]
+	}
+}
+
 func (as *ArticleStore) CallGetArticles(vm *hvue.VM, onSuccess func()) {
 	go as.callGetArticles(vm, onSuccess)
 }

@@ -77,3 +77,14 @@ func GetFilterTypeValueLabel() []*elements.ValueLabel {
 		elements.NewValueLabel(articleconst.FilterValueCat, articleconst.FilterLabelCat),
 	}
 }
+
+func GetStatusLabel(status string) string {
+	switch status {
+	case articleconst.StatusValueAvailable:
+		return articleconst.StatusLabelAvailable
+	case articleconst.StatusValueUnavailable:
+		return articleconst.StatusLabelUnavailable
+	default:
+		return articleconst.StatusLabelError
+	}
+}

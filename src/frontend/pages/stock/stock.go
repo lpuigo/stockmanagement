@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gopherjs/gopherjs/js"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/stockarticletable"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festock"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
@@ -18,12 +19,13 @@ func main() {
 
 	hvue.NewVM(
 		hvue.El("#stock_app"),
+		stockarticletable.RegisterComponent(),
 		hvue.DataS(mpm),
 		hvue.MethodsOf(mpm),
 		hvue.Mounted(func(vm *hvue.VM) {
 			mpm := &MainPageModel{Object: vm.Object}
 			mpm.GetUserSession(func() {
-				mpm.LoadStock(vm)
+				mpm.InitPage(vm)
 			})
 		}),
 		hvue.Computed("Title", func(vm *hvue.VM) interface{} {
@@ -76,7 +78,7 @@ func NewMainPageModel() *MainPageModel {
 	m.Stock = festock.NewStock()
 	m.SaveInProgress = false
 
-	m.ActiveMode = ""
+	m.ActiveMode = "article"
 	m.Filter = ""
 	m.FilterType = ""
 
@@ -85,6 +87,12 @@ func NewMainPageModel() *MainPageModel {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Action Methods
+
+func (m *MainPageModel) InitPage(vm *hvue.VM) {
+	m.LoadStock(vm)
+	onLoadedArticles := func() {}
+	m.AvailableArticles.CallGetArticles(vm, onLoadedArticles)
+}
 
 func (m *MainPageModel) LoadStock(vm *hvue.VM) {
 	m = &MainPageModel{Object: vm.Object}
