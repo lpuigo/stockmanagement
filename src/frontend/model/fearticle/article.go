@@ -57,7 +57,7 @@ func (a *Article) SearchString(filter string) string {
 		if value == "" {
 			return ""
 		}
-		if filter != articleconst.FilterLabelAll && filter != typ {
+		if filter != articleconst.FilterValueAll && filter != typ {
 			return ""
 		}
 		return prefix + typ + value
@@ -82,9 +82,23 @@ func GetStatusLabel(status string) string {
 	switch status {
 	case articleconst.StatusValueAvailable:
 		return articleconst.StatusLabelAvailable
+	case articleconst.StatusLabelOutOfStock:
+		return articleconst.StatusLabelOutOfStock
 	case articleconst.StatusValueUnavailable:
 		return articleconst.StatusLabelUnavailable
 	default:
 		return articleconst.StatusLabelError
+	}
+}
+
+func (a *Article) ToggleInStock() {
+	switch a.Status {
+	// Avaliable article can not be removed from stock
+	//case articleconst.StatusValueAvailable:
+	//	a.Status = articleconst.StatusValueUnavailable
+	case articleconst.StatusValueUnavailable:
+		a.Status = articleconst.StatusLabelOutOfStock
+	case articleconst.StatusLabelOutOfStock:
+		a.Status = articleconst.StatusValueUnavailable
 	}
 }

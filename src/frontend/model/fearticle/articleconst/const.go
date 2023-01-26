@@ -2,9 +2,11 @@ package articleconst
 
 const (
 	StatusValueAvailable   string = "available"
+	StatusValueOutOfStock  string = "outofstock"
 	StatusValueUnavailable string = "unavailable"
 
 	StatusLabelAvailable   string = "Disponible"
+	StatusLabelOutOfStock  string = "Epuisé"
 	StatusLabelUnavailable string = "Indisponible"
 	StatusLabelError       string = "Status inconnu"
 

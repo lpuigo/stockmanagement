@@ -17,87 +17,121 @@ import (
 
 const (
 	template string = `
-<el-table ref="stockArticleTable"
-        :border=true
-        :data="filteredArticles"
-        :default-sort = "{prop: 'Category', order: 'ascending'}"        
-        :row-class-name="TableRowClassName" height="100%" size="mini"
-		@row-dblclick="HandleDoubleClickedRow"
->
-<!--		:default-sort = "{prop: 'Stay.EndDate', order: 'descending'}"-->
-	
-	<!--	Index   -->
-	<el-table-column
-		label="N°" width="40px"
-		type="index"
-		index=1 
-	></el-table-column>
-
-	<!--	Availability   -->
-	<el-table-column label="Disponibilité" prop="Status" width="120px"
-		:resizable="true" :show-overflow-tooltip=true
-		sortable :sort-by="['Status', 'Category', 'SubCategory', 'Designation']"
-		:filters="FilterList('Status')" :filter-method="FilterHandler" filter-placement="bottom-end" :filtered-value="FilteredStatusValue()"
-	>
-		<template slot-scope="scope">
-			<span>{{FormatStatus(scope.row)}}</span>
-		</template>
-	</el-table-column>
-
-	<!--	Category   -->
-	<el-table-column label="Catégorie" prop="Category" width="150px"
-		:resizable="true" :show-overflow-tooltip=true
-		sortable :sort-by="['Category', 'SubCategory', 'Designation']"
-		:filters="FilterList('Category')" :filter-method="FilterHandler" filter-placement="bottom-end"
-	></el-table-column>
-
-	<!--	Ss Category   -->
-	<el-table-column label="Sous-Cat." prop="SubCategory" width="150px"
-		:resizable="true" :show-overflow-tooltip=true
-		sortable :sort-by="['SubCategory', 'Category', 'Designation']" 
-		:filters="FilterList('SubCategory')" :filter-method="FilterHandler" filter-placement="bottom-end"
-	></el-table-column>
-
-	<!--	Designation   -->
-	<el-table-column label="Désignation" prop="Designation" width="300px"
-		:resizable="true" :show-overflow-tooltip=true
-		sortable 
-	></el-table-column>
-
-	<!--	Manufacturer   -->
-	<el-table-column label="Constructeur" prop="Manufacturer" width="150px"
-		:resizable="true" :show-overflow-tooltip=true
-		sortable :sort-by="['Manufacturer', 'Category', 'SubCategory', 'Designation']" 
-		:filters="FilterList('Manufacturer')" :filter-method="FilterHandler" filter-placement="bottom-end"
-	></el-table-column>
-
-	<!--	Ref   -->
-	<el-table-column
-		:resizable="true" :show-overflow-tooltip=true 
-		prop="Ref" label="Référence" width="100px"
-		sortable :sort-by="['Ref', 'Category', 'SubCategory', 'Designation']" 
-	></el-table-column>
-	
-	<!--	PhotoId  -->
-<!--	<el-table-column-->
-<!--			:resizable="true" :show-overflow-tooltip=true -->
-<!--			label="Photo" width="180px"-->
-<!--	>-->
-<!--		<template slot-scope="scope">-->
-<!--			<span>{{scope.row.PhotoId}}</span>-->
-<!--		</template>-->
-<!--	</el-table-column>-->
-	
-	<!--	UnitStock   -->
-	<el-table-column
-		:resizable="true" :show-overflow-tooltip=true 
-		prop="UnitStock" label="Unité" width="100px" align="center"
-		sortable :sort-by="['UnitStock', 'Category', 'SubCategory', 'Designation']"  
-		:filters="FilterList('UnitStock')" :filter-method="FilterHandler" filter-placement="bottom-end"
-	></el-table-column>
-	
-</el-table>
-
+<el-container style="height: 100%">
+	<el-header style="height: auto; padding: 0 15px; margin-bottom: 15px">
+		<el-row :gutter="10" type="flex" align="middle">
+			<el-col :span="3">
+				<el-button type="primary" size="mini" @click="ToggleSelection" :disabled="SelectedArticles.length == 0">Ajout/Retrait</el-button>
+			</el-col>
+			<el-col :span="10">
+                <el-input v-model="filter" size="mini" style="width: 25vw; min-width: 130px"
+                          @input="ApplyFilter">
+                    <el-select v-model="filtertype"
+                               @change="ApplyFilter"
+                               slot="prepend" placeholder="Tous"
+                               style="width: 10vw; min-width: 60px; max-width: 120px; margin-right: -10px">
+                        <el-option
+                                v-for="item in GetFilterType()"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value"
+                        ></el-option>
+                    </el-select>
+                    <el-button slot="append" icon="far fa-times-circle" @click="ClearFilter"></el-button>
+                </el-input>
+			</el-col>
+		</el-row>
+	</el-header>
+	<el-main style="padding: 0 15px">
+		<el-table ref="stockArticleTable"
+				:border=true
+				:data="filteredArticles"
+				:default-sort = "{prop: 'Category', order: 'ascending'}"        
+				:row-class-name="TableRowClassName" height="100%" size="mini"
+				@row-dblclick="HandleDoubleClickedRow"
+				@selection-change="HandleSelectionChange"
+		>
+		<!--		:default-sort = "{prop: 'Stay.EndDate', order: 'descending'}"-->
+			
+			<!--	Index   -->
+			<el-table-column
+			  type="selection"
+			  width="55">
+			</el-table-column>
+				
+			<!--	Index   -->
+			<el-table-column
+				label="N°" width="40px"
+				type="index"
+				index=1 
+			></el-table-column>
+		
+			<!--	Availability   -->
+			<el-table-column label="Disponibilité" prop="Status" width="120px"
+				:resizable="true" :show-overflow-tooltip=true
+				sortable :sort-by="['Status', 'Category', 'SubCategory', 'Designation']"
+				:filters="FilterList('Status')" :filter-method="FilterHandler" filter-placement="bottom-end" :filtered-value="FilteredStatusValue()"
+			>
+				<template slot-scope="scope">
+					<span>{{FormatStatus(scope.row)}}</span>
+				</template>
+			</el-table-column>
+		
+			<!--	Category   -->
+			<el-table-column label="Catégorie" prop="Category" width="150px"
+				:resizable="true" :show-overflow-tooltip=true
+				sortable :sort-by="['Category', 'SubCategory', 'Designation']"
+				:filters="FilterList('Category')" :filter-method="FilterHandler" filter-placement="bottom-end"
+			></el-table-column>
+		
+			<!--	Ss Category   -->
+			<el-table-column label="Sous-Cat." prop="SubCategory" width="150px"
+				:resizable="true" :show-overflow-tooltip=true
+				sortable :sort-by="['SubCategory', 'Category', 'Designation']" 
+				:filters="FilterList('SubCategory')" :filter-method="FilterHandler" filter-placement="bottom-end"
+			></el-table-column>
+		
+			<!--	Designation   -->
+			<el-table-column label="Désignation" prop="Designation" width="300px"
+				:resizable="true" :show-overflow-tooltip=true
+				sortable 
+			></el-table-column>
+		
+			<!--	Manufacturer   -->
+			<el-table-column label="Constructeur" prop="Manufacturer" width="150px"
+				:resizable="true" :show-overflow-tooltip=true
+				sortable :sort-by="['Manufacturer', 'Category', 'SubCategory', 'Designation']" 
+				:filters="FilterList('Manufacturer')" :filter-method="FilterHandler" filter-placement="bottom-end"
+			></el-table-column>
+		
+			<!--	Ref   -->
+			<el-table-column
+				:resizable="true" :show-overflow-tooltip=true 
+				prop="Ref" label="Référence" width="100px"
+				sortable :sort-by="['Ref', 'Category', 'SubCategory', 'Designation']" 
+			></el-table-column>
+			
+			<!--	PhotoId  -->
+		<!--	<el-table-column-->
+		<!--			:resizable="true" :show-overflow-tooltip=true -->
+		<!--			label="Photo" width="180px"-->
+		<!--	>-->
+		<!--		<template slot-scope="scope">-->
+		<!--			<span>{{scope.row.PhotoId}}</span>-->
+		<!--		</template>-->
+		<!--	</el-table-column>-->
+			
+			<!--	UnitStock   -->
+			<el-table-column
+				:resizable="true" :show-overflow-tooltip=true 
+				prop="UnitStock" label="Unité" width="100px" align="center"
+				sortable :sort-by="['UnitStock', 'Category', 'SubCategory', 'Designation']"  
+				:filters="FilterList('UnitStock')" :filter-method="FilterHandler" filter-placement="bottom-end"
+			></el-table-column>
+			
+		</el-table>
+	</el-main>
+</el-container>
 `
 )
 
@@ -114,7 +148,7 @@ func componentOptions() []hvue.ComponentOption {
 		}),
 		hvue.MethodsOf(&StockArticlesTableModel{}),
 		hvue.Computed("filteredArticles", func(vm *hvue.VM) interface{} {
-			atm := ArticlesTableModelFromJS(vm.Object)
+			atm := StockArticlesTableModelFromJS(vm.Object)
 			return atm.GetFilteredArticles()
 		}),
 	}
@@ -126,11 +160,12 @@ func componentOptions() []hvue.ComponentOption {
 type StockArticlesTableModel struct {
 	*js.Object
 
-	Stock      *festock.Stock          `js:"value"`
-	Articles   *fearticle.ArticleStore `js:"articles"`
-	User       *feuser.User            `js:"user"`
-	Filter     string                  `js:"filter"`
-	FilterType string                  `js:"filtertype"`
+	Stock            *festock.Stock          `js:"value"`
+	Articles         *fearticle.ArticleStore `js:"articles"`
+	SelectedArticles []*fearticle.Article    `js:"SelectedArticles"`
+	User             *feuser.User            `js:"user"`
+	Filter           string                  `js:"filter"`
+	FilterType       string                  `js:"filtertype"`
 
 	VM *hvue.VM `js:"VM"`
 }
@@ -139,6 +174,7 @@ func NewStockArticlesTableModel(vm *hvue.VM) *StockArticlesTableModel {
 	atm := &StockArticlesTableModel{Object: tools.O()}
 	atm.VM = vm
 	atm.Articles = fearticle.NewArticleStore()
+	atm.SelectedArticles = []*fearticle.Article{}
 	atm.User = feuser.NewUser()
 	atm.Filter = ""
 	atm.FilterType = ""
@@ -146,24 +182,60 @@ func NewStockArticlesTableModel(vm *hvue.VM) *StockArticlesTableModel {
 	return atm
 }
 
-func ArticlesTableModelFromJS(o *js.Object) *StockArticlesTableModel {
+func StockArticlesTableModelFromJS(o *js.Object) *StockArticlesTableModel {
 	return &StockArticlesTableModel{Object: o}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // HTML Functions
 
+// Filter related methods
+
+func (atm *StockArticlesTableModel) ApplyFilter(vm *hvue.VM) {
+	//atm = StockArticlesTableModelFromJS(vm.Object)
+}
+
+func (atm *StockArticlesTableModel) GetFilterType(vm *hvue.VM) []*elements.ValueLabel {
+	return fearticle.GetFilterTypeValueLabel()
+}
+
+func (atm *StockArticlesTableModel) ClearFilter(vm *hvue.VM) {
+	atm = StockArticlesTableModelFromJS(vm.Object)
+	atm.FilterType = articleconst.FilterValueAll
+	atm.Filter = ""
+}
+
+// Table related methods
+
 func (atm *StockArticlesTableModel) TableRowClassName(vm *hvue.VM, rowInfo *js.Object) string {
-	//atm = ArticlesTableModelFromJS(vm.Object)
+	//atm = StockArticlesTableModelFromJS(vm.Object)
 	//as := fearticle.ArticleFromJS(rowInfo.Get("row"))
 	//return as.GetAvailabilityRowClass()
 	return ""
 }
 
 func (atm *StockArticlesTableModel) HandleDoubleClickedRow(vm *hvue.VM, ar *fearticle.Article) {
-	atm = ArticlesTableModelFromJS(vm.Object)
+	atm = StockArticlesTableModelFromJS(vm.Object)
 	message.NotifyWarning(vm, "Double Click Article", "front/comp/articletable/HandleDoubleClickedRow à implémenter")
 }
+
+func (atm *StockArticlesTableModel) HandleSelectionChange(vm *hvue.VM, selArts *js.Object) {
+	atm = StockArticlesTableModelFromJS(vm.Object)
+	selectedArticles := []*fearticle.Article{}
+	selArts.Call("forEach", func(art *fearticle.Article) {
+		selectedArticles = append(selectedArticles, art)
+	})
+	atm.SelectedArticles = selectedArticles
+}
+
+func (atm *StockArticlesTableModel) ToggleSelection(vm *hvue.VM) {
+	atm = StockArticlesTableModelFromJS(vm.Object)
+	for _, article := range atm.SelectedArticles {
+		article.ToggleInStock()
+	}
+}
+
+// Table column format related methods
 
 func (atm *StockArticlesTableModel) FormatStatus(ar *fearticle.Article) string {
 	return fearticle.GetStatusLabel(ar.Status)
@@ -188,7 +260,7 @@ func (vtm *StockArticlesTableModel) FilterHandler(vm *hvue.VM, value string, p *
 }
 
 func (vtm *StockArticlesTableModel) FilterList(vm *hvue.VM, prop string) []*elements.ValText {
-	vtm = ArticlesTableModelFromJS(vm.Object)
+	vtm = StockArticlesTableModelFromJS(vm.Object)
 	count := map[string]int{}
 	attribs := []string{}
 
