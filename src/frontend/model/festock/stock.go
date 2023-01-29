@@ -4,6 +4,7 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
+	"sort"
 )
 
 // type Stock reflects backend/model/stock.Stock
@@ -21,30 +22,46 @@ type Stock struct {
 }
 
 func NewStock() *Stock {
-	w := &Stock{Object: tools.O()}
-	w.Id = -1
-	w.Ref = ""
-	w.Ref = ""
-	w.Articles = []int{}
-	w.Movements = []*femovement.Movement{}
-	w.Quantities = make(map[int]int)
-	w.CTime = ""
-	w.UTime = ""
-	w.DTime = ""
-	return w
+	s := &Stock{Object: tools.O()}
+	s.Id = -1
+	s.Ref = ""
+	s.Ref = ""
+	s.Articles = []int{}
+	s.Movements = []*femovement.Movement{}
+	s.Quantities = make(map[int]int)
+	s.CTime = ""
+	s.UTime = ""
+	s.DTime = ""
+	return s
 }
 
 func StockFromJS(o *js.Object) *Stock {
 	return &Stock{Object: o}
 }
 
-// GenGetById returns a HasArticleById func, which, given an article Id, returns true if the pertaining article is in the receiver stock
-func (s *Stock) GenHasArticleById() func(id int) bool {
+// GetArticleAvailability returns a map with article id as key. If id exist (value = true), article is avaliable in stock receiver
+func (s *Stock) GetArticleAvailability() map[int]bool {
 	dict := make(map[int]bool)
 	for _, articleId := range s.Articles {
 		dict[articleId] = true
 	}
-	return func(id int) bool {
-		return dict[id]
+	return dict
+}
+
+// UpdateArticleAvailability updates receiver Articles with given articleInStock map keys
+func (s *Stock) UpdateArticleAvailability(articleInStock map[int]bool) {
+	artIds := []int{}
+	for id, _ := range articleInStock {
+		artIds = append(artIds, id)
 	}
+	sort.Ints(artIds)
+
+	// s.Articles = artIds // => causes JS to use  int32Array instead of Array
+	// thus causing issue with JSON unmarshalling on GO Back-End side
+	// this method uses a workaround to force attribute Articles as an Array
+	res := []interface{}{}
+	for _, id := range artIds {
+		res = append(res, id)
+	}
+	s.Set("Articles", res)
 }

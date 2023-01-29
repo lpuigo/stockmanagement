@@ -40,30 +40,43 @@ const (
                     <el-button slot="append" icon="far fa-times-circle" @click="ClearFilter"></el-button>
                 </el-input>
 			</el-col>
+			<el-col :span="9">
+				<el-pagination
+						@size-change="HandleSizeChange"
+						@current-change="HandleCurrentChange"
+						:current-page.sync="CurrentPage"
+						:page-sizes="[20, 50, 100, 200]"
+						:page-size="100"
+						layout="total, prev, pager, next, sizes"
+						:total="filteredArticles.length">
+				</el-pagination>
+    		</el-col>
 		</el-row>
 	</el-header>
 	<el-main style="padding: 0 15px">
 		<el-table ref="stockArticleTable"
 				:border=true
-				:data="filteredArticles"
+				:data="pagedArticles"
 				:default-sort = "{prop: 'Category', order: 'ascending'}"        
 				:row-class-name="TableRowClassName" height="100%" size="mini"
 				@row-dblclick="HandleDoubleClickedRow"
 				@selection-change="HandleSelectionChange"
+				@sort-change="HandleSortChange"
+				@filter-change="HandleFilterChange"
 		>
 		<!--		:default-sort = "{prop: 'Stay.EndDate', order: 'descending'}"-->
 			
-			<!--	Index   -->
+			<!--	Selection   -->
 			<el-table-column
 			  type="selection"
-			  width="55">
-			</el-table-column>
+			  width="55"
+			></el-table-column>
 				
 			<!--	Index   -->
 			<el-table-column
 				label="N°" width="40px"
 				type="index"
-				index=1 
+				:index="IndexMethod" 
 			></el-table-column>
 		
 			<!--	Availability   -->
@@ -151,6 +164,10 @@ func componentOptions() []hvue.ComponentOption {
 			atm := StockArticlesTableModelFromJS(vm.Object)
 			return atm.GetFilteredArticles()
 		}),
+		hvue.Computed("pagedArticles", func(vm *hvue.VM) interface{} {
+			atm := StockArticlesTableModelFromJS(vm.Object)
+			return atm.GetPagedArticles()
+		}),
 	}
 }
 
@@ -162,10 +179,15 @@ type StockArticlesTableModel struct {
 
 	Stock            *festock.Stock          `js:"value"`
 	Articles         *fearticle.ArticleStore `js:"articles"`
+	FilteredArticles []*fearticle.Article    `js:"FilteredArticles"`
 	SelectedArticles []*fearticle.Article    `js:"SelectedArticles"`
 	User             *feuser.User            `js:"user"`
 	Filter           string                  `js:"filter"`
 	FilterType       string                  `js:"filtertype"`
+	CurrentPage      int                     `js:"CurrentPage"`
+	PageSize         int                     `js:"PageSize"`
+	SortBy           []string                `js:"SortBy"`
+	Order            int                     `js:"Order"`
 
 	VM *hvue.VM `js:"VM"`
 }
@@ -174,16 +196,25 @@ func NewStockArticlesTableModel(vm *hvue.VM) *StockArticlesTableModel {
 	atm := &StockArticlesTableModel{Object: tools.O()}
 	atm.VM = vm
 	atm.Articles = fearticle.NewArticleStore()
+	atm.FilteredArticles = []*fearticle.Article{}
 	atm.SelectedArticles = []*fearticle.Article{}
 	atm.User = feuser.NewUser()
 	atm.Filter = ""
 	atm.FilterType = ""
+	atm.CurrentPage = 1
+	atm.PageSize = 50
+	atm.InitSort()
 
 	return atm
 }
 
 func StockArticlesTableModelFromJS(o *js.Object) *StockArticlesTableModel {
 	return &StockArticlesTableModel{Object: o}
+}
+
+func (atm *StockArticlesTableModel) InitSort() {
+	atm.SortBy = []string{"Category", "SubCategory", "Designation"}
+	atm.Order = 1
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -205,6 +236,18 @@ func (atm *StockArticlesTableModel) ClearFilter(vm *hvue.VM) {
 	atm.Filter = ""
 }
 
+// Table pagination related methods
+
+func (atm *StockArticlesTableModel) HandleSizeChange(vm *hvue.VM, val int) {
+	atm = StockArticlesTableModelFromJS(vm.Object)
+	atm.PageSize = val
+}
+
+func (atm *StockArticlesTableModel) HandleCurrentChange(vm *hvue.VM, val int) {
+	atm = StockArticlesTableModelFromJS(vm.Object)
+	atm.CurrentPage = val
+}
+
 // Table related methods
 
 func (atm *StockArticlesTableModel) TableRowClassName(vm *hvue.VM, rowInfo *js.Object) string {
@@ -219,6 +262,38 @@ func (atm *StockArticlesTableModel) HandleDoubleClickedRow(vm *hvue.VM, ar *fear
 	message.NotifyWarning(vm, "Double Click Article", "front/comp/articletable/HandleDoubleClickedRow à implémenter")
 }
 
+func (atm *StockArticlesTableModel) HandleFilterChange(vm *hvue.VM, o *js.Object) {
+	atm = StockArticlesTableModelFromJS(vm.Object)
+	print("HandleFilterChange", o)
+}
+
+func (atm *StockArticlesTableModel) HandleSortChange(vm *hvue.VM, o *js.Object) {
+	atm = StockArticlesTableModelFromJS(vm.Object)
+	order := o.Get("column").Get("order").String()
+	switch order {
+	case "ascending":
+		atm.Order = 1
+	case "descending":
+		atm.Order = -1
+	default:
+		atm.InitSort()
+		atm.sortFilteredArticle()
+		return
+	}
+
+	sortBy := []string{}
+	attrSortBy := o.Get("column").Get("sortBy")
+	if attrSortBy == js.Undefined {
+		sortBy = []string{o.Get("prop").String()}
+	} else {
+		attrSortBy.Call("forEach", func(name string) {
+			sortBy = append(sortBy, name)
+		})
+	}
+	atm.SortBy = sortBy
+	atm.sortFilteredArticle()
+}
+
 func (atm *StockArticlesTableModel) HandleSelectionChange(vm *hvue.VM, selArts *js.Object) {
 	atm = StockArticlesTableModelFromJS(vm.Object)
 	selectedArticles := []*fearticle.Article{}
@@ -230,9 +305,23 @@ func (atm *StockArticlesTableModel) HandleSelectionChange(vm *hvue.VM, selArts *
 
 func (atm *StockArticlesTableModel) ToggleSelection(vm *hvue.VM) {
 	atm = StockArticlesTableModelFromJS(vm.Object)
+	isArticleInStockById := atm.Stock.GetArticleAvailability()
 	for _, article := range atm.SelectedArticles {
 		article.ToggleInStock()
+		print("ToggleSelection", article.Designation, article.Status, article.Id)
+		switch article.Status {
+		case articleconst.StatusValueOutOfStock, articleconst.StatusValueAvailable:
+			isArticleInStockById[article.Id] = true
+		case articleconst.StatusValueUnavailable:
+			delete(isArticleInStockById, article.Id)
+		}
 	}
+	atm.Stock.UpdateArticleAvailability(isArticleInStockById)
+}
+
+func (atm *StockArticlesTableModel) IndexMethod(vm *hvue.VM, index int) int {
+	atm = StockArticlesTableModelFromJS(vm.Object)
+	return (atm.CurrentPage-1)*atm.PageSize + index + 1
 }
 
 // Table column format related methods
@@ -246,7 +335,7 @@ func (atm *StockArticlesTableModel) FormatStatus(ar *fearticle.Article) string {
 
 // FilteredStatusValue returns pre filtered values for Status
 func (vtm *StockArticlesTableModel) FilteredStatusValue() []string {
-	return []string{articleconst.StatusValueAvailable}
+	return []string{articleconst.StatusLabelAvailable, articleconst.StatusLabelOutOfStock}
 }
 
 func (vtm *StockArticlesTableModel) FilterHandler(vm *hvue.VM, value string, p *js.Object, col *js.Object) bool {
@@ -297,7 +386,7 @@ func (vtm *StockArticlesTableModel) FilterList(vm *hvue.VM, prop string) []*elem
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Actions Functions
+// Table Functions
 
 func (atm *StockArticlesTableModel) GetFilteredArticles() []*fearticle.Article {
 	filter := func(ar *fearticle.Article) bool {
@@ -315,10 +404,10 @@ func (atm *StockArticlesTableModel) GetFilteredArticles() []*fearticle.Article {
 	}
 
 	// Set Article status : available in stock or not
-	isArticleInStockById := atm.Stock.GenHasArticleById()
+	isArticleInStockById := atm.Stock.GetArticleAvailability()
 	for _, art := range atm.Articles.Articles {
-		if isArticleInStockById(art.Id) {
-			art.Status = articleconst.StatusValueAvailable
+		if isArticleInStockById[art.Id] {
+			art.Status = articleconst.StatusValueOutOfStock
 			continue
 		}
 		art.Status = articleconst.StatusValueUnavailable
@@ -331,5 +420,38 @@ func (atm *StockArticlesTableModel) GetFilteredArticles() []*fearticle.Article {
 			accs = append(accs, a)
 		}
 	}
+	atm.FilteredArticles = accs
+	atm.sortFilteredArticle()
 	return accs
 }
+
+// sortFilteredArticleBy sorts recieiver's FilteredArticles by Props, with given reverse order (1 ascending, -1 descending)
+func (atm *StockArticlesTableModel) sortFilteredArticle() {
+	compare := func(a, b *fearticle.Article) int {
+		for _, prop := range atm.SortBy {
+			va, vb := a.Get(prop).String(), b.Get(prop).String()
+			switch {
+			case va < vb:
+				return -atm.Order
+			case va > vb:
+				return atm.Order
+			default:
+				continue
+			}
+		}
+		return 0
+	}
+	atm.Get("FilteredArticles").Call("sort", compare)
+}
+
+func (atm *StockArticlesTableModel) GetPagedArticles() []*fearticle.Article {
+	firstpos := (atm.CurrentPage - 1) * atm.PageSize
+	lastPos := firstpos + atm.PageSize
+	if lastPos > len(atm.FilteredArticles) {
+		lastPos = len(atm.FilteredArticles)
+	}
+	return atm.FilteredArticles[firstpos:lastPos]
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Table Functions

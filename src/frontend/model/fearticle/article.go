@@ -82,7 +82,7 @@ func GetStatusLabel(status string) string {
 	switch status {
 	case articleconst.StatusValueAvailable:
 		return articleconst.StatusLabelAvailable
-	case articleconst.StatusLabelOutOfStock:
+	case articleconst.StatusValueOutOfStock:
 		return articleconst.StatusLabelOutOfStock
 	case articleconst.StatusValueUnavailable:
 		return articleconst.StatusLabelUnavailable
@@ -97,8 +97,8 @@ func (a *Article) ToggleInStock() {
 	//case articleconst.StatusValueAvailable:
 	//	a.Status = articleconst.StatusValueUnavailable
 	case articleconst.StatusValueUnavailable:
-		a.Status = articleconst.StatusLabelOutOfStock
-	case articleconst.StatusLabelOutOfStock:
+		a.Status = articleconst.StatusValueOutOfStock
+	case articleconst.StatusValueOutOfStock:
 		a.Status = articleconst.StatusValueUnavailable
 	}
 }
