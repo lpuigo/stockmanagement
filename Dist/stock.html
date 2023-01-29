@@ -39,8 +39,10 @@
 
                 <!-- ====================	Mode selection  ============================== -->
                 <el-radio-group v-model="ActiveMode" @change="SwitchActiveMode" size="mini">
-                    <el-tooltip content="Liste d'Articles" placement="bottom" effect="light" open-delay="500"
-                                class="rd-middle-screen">
+                    <el-tooltip content="Mouvements de stock" placement="bottom" effect="light" open-delay="500">
+                        <el-radio-button label="movement"><i class="fa-solid fa-dolly icon--big"></i></el-radio-button>
+                    </el-tooltip>
+                    <el-tooltip content="Liste d'Articles" placement="bottom" effect="light" open-delay="500">
                         <el-radio-button label="article"><i class="fa-solid fa-boxes-packing icon--big"></i>
                         </el-radio-button>
                     </el-tooltip>
@@ -62,6 +64,10 @@
 
         <el-main v-if="User.Connected" style="height:100%; padding: 15px 10px; ">
             <!-- ====================	Articles catalog description  ============================== -->
+            <div v-if="ActiveMode == 'movement'" style="height: 100%">
+                <div>gestion des mouvements</div>
+                <pre>{{Stock}}</pre>
+            </div>
             <div v-if="ActiveMode == 'article'" style="height: 100%">
                 <stock-articles-table
                         v-model="Stock"
@@ -72,6 +78,7 @@
             </div>
 
             <div v-if="ActiveMode == 'stock'" style="height: 100%">
+                <div>Object Stock (debug)</div>
                 <pre>{{Stock}}</pre>
             </div>
 
