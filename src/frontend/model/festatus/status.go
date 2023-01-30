@@ -24,3 +24,10 @@ func NewStatus() *Status {
 func StatusFromJS(o *js.Object) *Status {
 	return &Status{Object: o}
 }
+
+func (s *Status) GetLabel() string {
+	switch s.Status {
+	default:
+		return "Undefined"
+	}
+}

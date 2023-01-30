@@ -2,8 +2,10 @@ package femovement
 
 import (
 	"github.com/gopherjs/gopherjs/js"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement/movementconst"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festatus"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements"
 )
 
 // type Movement reflects backend/model/movement.Movement
@@ -43,4 +45,41 @@ func NewMovement() *Movement {
 
 func MovementFromJS(o *js.Object) *Movement {
 	return &Movement{Object: o}
+}
+
+func (m *Movement) GetCurrentStatus() *festatus.Status {
+	if len(m.StatusHistory) > 0 {
+		return m.StatusHistory[0]
+	}
+	return nil
+}
+
+func (a *Movement) SearchString(filter string) string {
+	searchItem := func(prefix, typ, value string) string {
+		if value == "" {
+			return ""
+		}
+		if filter != movementconst.FilterValueAll && filter != typ {
+			return ""
+		}
+		return prefix + typ + value
+	}
+
+	res := searchItem("", movementconst.FilterValueType, a.Type)
+	res += searchItem("", movementconst.FilterValueActor, a.Actor)
+	res += searchItem("", movementconst.FilterValueResponsible, a.Responsible)
+	res += searchItem("", movementconst.FilterValueStatus, a.GetCurrentStatus().GetLabel())
+	//res += searchItem("", movementconst.FilterValueArticle, a.Category)
+	return res
+}
+
+func GetFilterTypeValueLabel() []*elements.ValueLabel {
+	return []*elements.ValueLabel{
+		elements.NewValueLabel(movementconst.FilterValueAll, movementconst.FilterLabelAll),
+		elements.NewValueLabel(movementconst.FilterValueType, movementconst.FilterLabelType),
+		elements.NewValueLabel(movementconst.FilterValueActor, movementconst.FilterLabelActor),
+		elements.NewValueLabel(movementconst.FilterValueResponsible, movementconst.FilterLabelResponsible),
+		elements.NewValueLabel(movementconst.FilterValueStatus, movementconst.FilterLabelStatus),
+		//elements.NewValueLabel(movementconst.FilterValueArticle, movementconst.FilterLabelArticle),
+	}
 }
