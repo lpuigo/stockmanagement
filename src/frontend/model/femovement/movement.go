@@ -54,6 +54,23 @@ func (m *Movement) GetCurrentStatus() *festatus.Status {
 	return nil
 }
 
+func GetTypeLabel(t string) string {
+	switch t {
+	case movementconst.TypeValueInventory:
+		return movementconst.TypeLabelInventory
+	case movementconst.TypeValueSupply:
+		return movementconst.TypeLabelSupply
+	case movementconst.TypeValueWithdrawal:
+		return movementconst.TypeLabelWithdrawal
+	default:
+		return "undefined '" + t + "'"
+	}
+}
+
+func (m *Movement) GetTypeLabel() string {
+	return GetTypeLabel(m.Type)
+}
+
 func (a *Movement) SearchString(filter string) string {
 	searchItem := func(prefix, typ, value string) string {
 		if value == "" {

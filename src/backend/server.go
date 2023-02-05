@@ -115,6 +115,7 @@ func createRouter(mgr *manager.Manager, conf *Conf) http.Handler {
 
 	// Movements methods
 	router.HandleFunc("/api/movements", withUserManager("GetMovements", route.GetMovements)).Methods("GET")
+	router.HandleFunc("/api/movements/stock/{sid:[0-9]+}", withUserManager("GetMovementsForStock", route.GetMovementsForStock)).Methods("GET")
 	router.HandleFunc("/api/movements", withUserManager("UpdateMovements", route.UpdateMovements)).Methods("PUT")
 
 	// Worksites methods

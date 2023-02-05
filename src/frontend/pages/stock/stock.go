@@ -2,8 +2,10 @@ package main
 
 import (
 	"github.com/gopherjs/gopherjs/js"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/movementtable"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/stockarticletable"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festock"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
@@ -20,6 +22,7 @@ func main() {
 	hvue.NewVM(
 		hvue.El("#stock_app"),
 		stockarticletable.RegisterComponent(),
+		movementtable.RegisterComponent(),
 		hvue.DataS(mpm),
 		hvue.MethodsOf(mpm),
 		hvue.Mounted(func(vm *hvue.VM) {
@@ -58,10 +61,11 @@ type MainPageModel struct {
 	VM   *hvue.VM     `js:"VM"`
 	User *feuser.User `js:"User"`
 
-	AvailableArticles *fearticle.ArticleStore `js:"AvailableArticles"`
-	StockStore        *festock.StockStore     `js:"StockStore"`
-	Stock             *festock.Stock          `js:"Stock"`
-	SaveInProgress    bool                    `js:"SaveInProgress"`
+	AvailableArticles *fearticle.ArticleStore   `js:"AvailableArticles"`
+	StockStore        *festock.StockStore       `js:"StockStore"`
+	Stock             *festock.Stock            `js:"Stock"`
+	MovementStore     *femovement.MovementStore `js:"MovementStore"`
+	SaveInProgress    bool                      `js:"SaveInProgress"`
 
 	ActiveMode string `js:"ActiveMode"`
 	Filter     string `js:"Filter"`
@@ -76,6 +80,7 @@ func NewMainPageModel() *MainPageModel {
 	m.AvailableArticles = fearticle.NewArticleStore()
 	m.StockStore = festock.NewStockStore()
 	m.Stock = festock.NewStock()
+	m.MovementStore = femovement.NewMovementStore()
 	m.SaveInProgress = false
 
 	m.ActiveMode = "article"
@@ -101,13 +106,16 @@ func (m *MainPageModel) LoadStock(vm *hvue.VM) {
 		message.ErrorMsgStr(m.VM, "Identifiant de stock non trouvé", sid, true)
 		return
 	}
+	stockId := sid.Int()
 	onLoaded := func() {
 		if len(m.StockStore.Stocks) > 0 {
 			m.Stock = m.StockStore.Stocks[0]
 			js.Global.Get("document").Set("title", m.Stock.Ref)
 		}
+		onLoadedMovements := func() {}
+		m.MovementStore.CallGetMovementsForStockId(vm, stockId, onLoadedMovements)
 	}
-	m.StockStore.CallGetStockById(m.VM, sid.Int(), onLoaded)
+	m.StockStore.CallGetStockById(m.VM, stockId, onLoaded)
 }
 
 func (m *MainPageModel) SaveStock(vm *hvue.VM) {

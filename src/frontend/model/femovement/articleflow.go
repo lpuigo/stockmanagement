@@ -8,16 +8,16 @@ import (
 type ArticleFlow struct {
 	*js.Object
 
-	ArticleId int     `js:"ArticleId"`
-	Price     float64 `js:"Price"`
-	Amount    int     `js:"Amount"`
+	ArtId int     `js:"ArtId"`
+	Price float64 `js:"Price"`
+	Qty   int     `js:"Qty"`
 }
 
 func NewArticleFlow() *ArticleFlow {
 	af := &ArticleFlow{Object: tools.O()}
-	af.ArticleId = -1
+	af.ArtId = -1
 	af.Price = 0
-	af.Amount = 0
+	af.Qty = 0
 	return af
 }
 

@@ -2,12 +2,14 @@ package movementtable
 
 import (
 	"github.com/gopherjs/gopherjs/js"
-	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle/articleconst"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement/movementconst"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festatus"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements/message"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/fedate"
 	"github.com/lpuigo/hvue"
 	"sort"
 	"strconv"
@@ -16,10 +18,10 @@ import (
 
 const (
 	template string = `
-<el-table ref="articleTable"
+<el-table ref="movementsTable"
         :border=true
-        :data="filteredArticles"
-        :default-sort = "{prop: 'Category', order: 'ascending'}"        
+        :data="filteredMovements"
+        :default-sort = "{prop: 'Date', order: 'descending'}"        
         :row-class-name="TableRowClassName" height="100%" size="mini"
 		@row-dblclick="HandleDoubleClickedRow"
 >
@@ -32,58 +34,71 @@ const (
 		index=1 
 	></el-table-column>
 
-	<!--	Category   -->
-	<el-table-column label="Catégorie" prop="Category" width="140px"
+	<!--	Date   -->
+	<el-table-column label="Date" prop="Date" width="140px"
 		:resizable="true" :show-overflow-tooltip=true
-		sortable :sort-by="['Category', 'SubCategory', 'Designation']"
-		:filters="FilterList('Category')" :filter-method="FilterHandler" filter-placement="bottom-end" :filtered-value="FilteredCategoryValue()"
+		sortable :sort-by="['Date']"
+	>
+		<template slot-scope="scope">
+			<span>{{FormatDate(scope.row.Date)}}</span>
+		</template>
+	</el-table-column>
+
+	<!--	Type   -->
+	<el-table-column label="Type" prop="Type" width="140px"
+		:resizable="true" :show-overflow-tooltip=true
+		sortable :sort-by="['Type', 'Date']"
+		:filters="FilterList('Type')" :filter-method="FilterHandler" filter-placement="bottom-end"
+	>
+		<template slot-scope="scope">
+			<span>{{FormatType(scope.row)}}</span>
+		</template>
+	</el-table-column>
+
+	<!--	Actor   -->
+	<el-table-column label="Acteur" prop="Actor" width="140px"
+		:resizable="true" :show-overflow-tooltip=true
+		sortable :sort-by="['Actor', 'Date']"
+		:filters="FilterList('Actor')" :filter-method="FilterHandler" filter-placement="bottom-end"
 	></el-table-column>
 
-	<!--	Ss Category   -->
-	<el-table-column label="Sous-Cat." prop="SubCategory" width="140px"
+	<!--	Responsible   -->
+	<el-table-column label="Responsable" prop="Responsible" width="140px"
 		:resizable="true" :show-overflow-tooltip=true
-		sortable :sort-by="['SubCategory', 'Category', 'Designation']" 
-		:filters="FilterList('SubCategory')" :filter-method="FilterHandler" filter-placement="bottom-end"
+		sortable :sort-by="['Responsible', 'Date']"
+		:filters="FilterList('Responsible')" :filter-method="FilterHandler" filter-placement="bottom-end"
 	></el-table-column>
 
-	<!--	Designation   -->
-	<el-table-column label="Désignation" prop="Designation" width="200px"
+	<!--	Worksite   -->
+	<el-table-column label="Chantier" prop="WorksiteId" width="140px"
 		:resizable="true" :show-overflow-tooltip=true
-		sortable 
-	></el-table-column>
+		sortable :sort-by="['WorksiteId', 'Date']" 
+		:filters="FilterList('WorksiteId')" :filter-method="FilterHandler" filter-placement="bottom-end"
+	>
+		<template slot-scope="scope">
+			<span>{{FormatWorksite(scope.row.WorksiteId)}}</span>
+		</template>
+	</el-table-column>
 
-	<!--	Manufacturer   -->
-	<el-table-column label="Constructeur" prop="Manufacturer" width="150px"
+	<!--	Status   -->
+	<el-table-column label="Status" prop="StatusHistory" width="200px"
 		:resizable="true" :show-overflow-tooltip=true
-		sortable :sort-by="['Manufacturer', 'Category', 'SubCategory', 'Designation']" 
-		:filters="FilterList('Manufacturer')" :filter-method="FilterHandler" filter-placement="bottom-end"
-	></el-table-column>
+		:filters="FilterList('StatusHistory')" :filter-method="FilterHandler" filter-placement="bottom-end"
+	>
+		<template slot-scope="scope">
+			<span>{{FormatStatus(scope.row)}}</span>
+		</template>
+	</el-table-column>
 
-	<!--	Ref   -->
-	<el-table-column
-		:resizable="true" :show-overflow-tooltip=true 
-		prop="Ref" label="Référence" width="100px"
-		sortable :sort-by="['Ref', 'Category', 'SubCategory', 'Designation']" 
-	></el-table-column>
-	
-	<!--	PhotoId  -->
-<!--	<el-table-column-->
-<!--			:resizable="true" :show-overflow-tooltip=true -->
-<!--			label="Photo" width="180px"-->
-<!--	>-->
-<!--		<template slot-scope="scope">-->
-<!--			<span>{{scope.row.PhotoId}}</span>-->
-<!--		</template>-->
-<!--	</el-table-column>-->
-	
-	<!--	UnitStock   -->
-	<el-table-column
-		:resizable="true" :show-overflow-tooltip=true 
-		prop="UnitStock" label="Unité" width="100px" align="center"
-		sortable :sort-by="['UnitStock', 'Category', 'SubCategory', 'Designation']"  
-		:filters="FilterList('UnitStock')" :filter-method="FilterHandler" filter-placement="bottom-end"
-	></el-table-column>
-	
+	<!--	ArticleFlows   -->
+	<el-table-column label="Articles" width="150px"
+		:resizable="true" :show-overflow-tooltip=true
+	>
+		<template slot-scope="scope">
+			<span>{{scope.row.ArticleFlows.length}} article(s)</span>
+		</template>
+	</el-table-column>
+
 </el-table>
 
 `
@@ -101,7 +116,7 @@ func componentOptions() []hvue.ComponentOption {
 			return NewMovementsTableModel(vm)
 		}),
 		hvue.MethodsOf(&MovementsTableModel{}),
-		hvue.Computed("filteredArticles", func(vm *hvue.VM) interface{} {
+		hvue.Computed("filteredMovements", func(vm *hvue.VM) interface{} {
 			atm := MovementsTableModelFromJS(vm.Object)
 			return atm.GetFilteredMovements()
 		}),
@@ -152,6 +167,23 @@ func (mtm *MovementsTableModel) HandleDoubleClickedRow(vm *hvue.VM, mvt *femovem
 	message.NotifyWarning(vm, "Double Click Movement", "front/comp/movementtable/HandleDoubleClickedRow à implémenter")
 }
 
+func (mtm *MovementsTableModel) FormatDate(d string) string {
+	return fedate.DateString(d)
+}
+
+func (mtm *MovementsTableModel) FormatWorksite(wsId int) string {
+	// TODO lookup for worsite name
+	return "Chantier " + strconv.Itoa(wsId)
+}
+
+func (mtm *MovementsTableModel) FormatType(m *femovement.Movement) string {
+	return m.GetTypeLabel()
+}
+
+func (mtm *MovementsTableModel) FormatStatus(m *femovement.Movement) string {
+	return m.GetCurrentStatus().GetLabel()
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Column Filtering Related Methods
 
@@ -162,7 +194,13 @@ func (mtm *MovementsTableModel) FilteredCategoryValue() []string {
 
 func (mtm *MovementsTableModel) FilterHandler(vm *hvue.VM, value string, p *js.Object, col *js.Object) bool {
 	prop := col.Get("property").String()
-	return p.Get(prop).String() == value
+	m := femovement.MovementFromJS(p)
+	switch prop {
+	case "StatusHistory":
+		return m.GetCurrentStatus().Status == value
+	default:
+		return p.Get(prop).String() == value
+	}
 }
 
 func (mtm *MovementsTableModel) FilterList(vm *hvue.VM, prop string) []*elements.ValText {
@@ -171,15 +209,23 @@ func (mtm *MovementsTableModel) FilterList(vm *hvue.VM, prop string) []*elements
 	attribs := []string{}
 
 	var getValue func(m *femovement.Movement) string
+	var getLabel func(string) string
 	switch prop {
-	//case "Status":
-	//	getValue = func(m *femovement.Movement) string {
-	//		return m.Status()
-	//	}
+	case "Type":
+		getValue = func(m *femovement.Movement) string {
+			return m.Type
+		}
+		getLabel = func(v string) string { return femovement.GetTypeLabel(v) }
+	case "StatusHistory":
+		getValue = func(m *femovement.Movement) string {
+			return m.GetCurrentStatus().Status
+		}
+		getLabel = func(v string) string { return festatus.GetLabel(v) }
 	default:
 		getValue = func(m *femovement.Movement) string {
 			return m.Get(prop).String()
 		}
+		getLabel = func(v string) string { return v }
 	}
 
 	attrib := ""
@@ -193,7 +239,7 @@ func (mtm *MovementsTableModel) FilterList(vm *hvue.VM, prop string) []*elements
 	sort.Strings(attribs)
 	res := []*elements.ValText{}
 	for _, a := range attribs {
-		fa := a
+		fa := getLabel(a)
 		if fa == "" {
 			fa = "Vide"
 		}
@@ -206,13 +252,13 @@ func (mtm *MovementsTableModel) FilterList(vm *hvue.VM, prop string) []*elements
 // Actions Functions
 
 func (mtm *MovementsTableModel) GetFilteredMovements() []*femovement.Movement {
-	filter := func(ar *femovement.Movement) bool {
+	filter := func(*femovement.Movement) bool {
 		return true
 	}
-	if !(mtm.FilterType == articleconst.FilterValueAll && mtm.Filter == "") {
+	if !(mtm.FilterType == movementconst.FilterValueAll && mtm.Filter == "") {
 		expected := strings.ToUpper(mtm.Filter)
-		filter = func(ar *femovement.Movement) bool {
-			ss := ar.SearchString(mtm.FilterType)
+		filter = func(m *femovement.Movement) bool {
+			ss := m.SearchString(mtm.FilterType)
 			if ss == "" {
 				return false
 			}
@@ -222,9 +268,9 @@ func (mtm *MovementsTableModel) GetFilteredMovements() []*femovement.Movement {
 
 	// filter movements in mvts slice to prevent change on mtm.Movements caused by sort
 	var mvts []*femovement.Movement
-	for _, a := range mtm.Movements.Movements {
-		if filter(a) {
-			mvts = append(mvts, a)
+	for _, m := range mtm.Movements.Movements {
+		if filter(m) {
+			mvts = append(mvts, m)
 		}
 	}
 	return mvts

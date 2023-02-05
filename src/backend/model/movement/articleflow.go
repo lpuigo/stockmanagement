@@ -1,7 +1,7 @@
 package movement
 
 type ArticleFlow struct {
-	ArticleId int
-	Price     float64
-	Amount    int
+	ArtId int
+	Price float64
+	Qty   int
 }

@@ -65,6 +65,19 @@ func (ap *MovementsPersister) GetMovements() []*Movement {
 	return res
 }
 
+func (ap *MovementsPersister) GetMovementsForStockId(sid int) []*Movement {
+	res := []*Movement{}
+	for _, r := range ap.GetRecords() {
+		if ar, ok := r.(*MovementRecord); ok {
+			if ar.StockId != sid {
+				continue
+			}
+			res = append(res, ar.Movement)
+		}
+	}
+	return res
+}
+
 func (ap *MovementsPersister) UpdateMovements(updatedMovements []*Movement) error {
 	for _, updAct := range updatedMovements {
 		updMvtRec := NewMovementRecordFromMovement(updAct)

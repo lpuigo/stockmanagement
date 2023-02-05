@@ -14,4 +14,12 @@ const (
 	FilterLabelResponsible string = "Responsable"
 	FilterLabelStatus      string = "Status"
 	FilterLabelArticle     string = "Article"
+
+	TypeValueInventory  string = "inventory"
+	TypeValueSupply     string = "supply"
+	TypeValueWithdrawal string = "withdrawal"
+
+	TypeLabelInventory  string = "Inventaire"
+	TypeLabelSupply     string = "Approvisionnement"
+	TypeLabelWithdrawal string = "Retrait"
 )

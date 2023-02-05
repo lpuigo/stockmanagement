@@ -28,12 +28,18 @@ func NewMovementStore() *MovementStore {
 	return as
 }
 
-func (as *MovementStore) CallGetMovements(vm *hvue.VM, onSuccess func()) {
-	go as.callGetMovements(vm, onSuccess)
+func (as *MovementStore) CallGetMovementsForStockId(vm *hvue.VM, stockId int, onSuccess func()) {
+	url := "/api/movements/stock/" + strconv.Itoa(stockId)
+	go as.callGetMovements(vm, url, onSuccess)
 }
 
-func (as *MovementStore) callGetMovements(vm *hvue.VM, onSuccess func()) {
-	req := xhr.NewRequest("GET", "/api/movements")
+func (as *MovementStore) CallGetMovements(vm *hvue.VM, onSuccess func()) {
+	url := "/api/movements"
+	go as.callGetMovements(vm, url, onSuccess)
+}
+
+func (as *MovementStore) callGetMovements(vm *hvue.VM, url string, onSuccess func()) {
+	req := xhr.NewRequest("GET", url)
 	req.Timeout = tools.LongTimeOut
 	req.ResponseType = xhr.JSON
 
