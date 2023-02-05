@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gopherjs/gopherjs/js"
-	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/movementtable"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/movementupdate"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/stockarticletable"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement"
@@ -22,7 +22,7 @@ func main() {
 	hvue.NewVM(
 		hvue.El("#stock_app"),
 		stockarticletable.RegisterComponent(),
-		movementtable.RegisterComponent(),
+		movementupdate.RegisterComponent(),
 		hvue.DataS(mpm),
 		hvue.MethodsOf(mpm),
 		hvue.Mounted(func(vm *hvue.VM) {

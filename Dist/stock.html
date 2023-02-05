@@ -65,11 +65,10 @@
         <el-main v-if="User.Connected" style="height:100%; padding: 15px 10px; ">
             <!-- ====================	Articles catalog description  ============================== -->
             <div v-if="ActiveMode == 'movement'" style="height: 100%">
-                <movements-table
+                <movements-update
                         v-model="MovementStore"
                         :user="User"
-                        :filter="Filter" :filtertype="FilterType"
-                ></movements-table>
+                ></movements-update>
             </div>
             <div v-if="ActiveMode == 'article'" style="height: 100%">
                 <stock-articles-table
