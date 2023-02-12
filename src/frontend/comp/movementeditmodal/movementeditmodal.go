@@ -2,7 +2,9 @@ package movementeditmodal
 
 import (
 	"github.com/gopherjs/gopherjs/js"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festock"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
 	"github.com/lpuigo/hvue"
 )
@@ -11,6 +13,9 @@ type MovementEditModalModel struct {
 	*MovementModalModel
 
 	EditMode string `js:"EditMode"`
+
+	StockArticles *fearticle.ArticleStore `js:"articles"`
+	Stock         *festock.Stock          `js:"stock"`
 }
 
 const (
@@ -21,6 +26,8 @@ const (
 func NewMovementEditModalModel(vm *hvue.VM) *MovementEditModalModel {
 	aemm := &MovementEditModalModel{MovementModalModel: NewMovementModalModel(vm)}
 	aemm.EditMode = modeMovement
+	aemm.StockArticles = fearticle.NewArticleStore()
+	aemm.Stock = festock.NewStock()
 	return aemm
 }
 
@@ -38,6 +45,7 @@ func RegisterComponent() hvue.ComponentOption {
 func componentOptions() []hvue.ComponentOption {
 	return []hvue.ComponentOption{
 		hvue.Template(template),
+		hvue.Props("stock", "articles"),
 		hvue.DataFunc(func(vm *hvue.VM) interface{} {
 			return NewMovementEditModalModel(vm)
 		}),
@@ -64,3 +72,11 @@ func (memm *MovementEditModalModel) ConfirmChange(vm *hvue.VM) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // HTML Methods
+
+func (memm *MovementEditModalModel) FormatType(t string) string {
+	return femovement.GetTypeLabel(t)
+}
+
+func (memm *MovementEditModalModel) UpdateDate(vm *hvue.VM) {
+	//memm = MovementEditModalModelFromJS(vm.Object)
+}

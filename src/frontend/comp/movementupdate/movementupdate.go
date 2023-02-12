@@ -4,8 +4,10 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/movementeditmodal"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/movementtable"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement/movementconst"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festock"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements"
@@ -18,6 +20,8 @@ const (
 
 	<movement-edit-modal
 			ref="MovementEditModal"
+			:stock="stock"
+			:articles="articles"
 	></movement-edit-modal>
 
 	<el-header style="height: auto; padding: 0 15px; margin-bottom: 15px">
@@ -25,13 +29,13 @@ const (
 			<el-col :span="10">
 				<el-button-group>
 					<el-tooltip content="Retrait" placement="bottom" effect="light" open-delay="500">
-						<el-button type="warning"plain icon="fa-solid fa-right-from-bracket icon--big"></el-button>
+						<el-button type="warning" plain icon="fa-solid fa-right-from-bracket icon--big"></el-button>
 					</el-tooltip>
 					<el-tooltip content="Approvisionnement" placement="bottom" effect="light" open-delay="500">
-						<el-button type="warning"plain icon="fa-solid fa-right-to-bracket icon--big"></el-button>
+						<el-button type="warning" plain icon="fa-solid fa-right-to-bracket icon--big"></el-button>
 					</el-tooltip>
 					<el-tooltip content="Inventaire" placement="bottom" effect="light" open-delay="500">
-						<el-button type="warning"plain icon="fa-solid fa-list-check icon--big"></el-button>
+						<el-button type="warning" plain icon="fa-solid fa-list-check icon--big"></el-button>
 					</el-tooltip>
 				</el-button-group>
 			</el-col>
@@ -76,7 +80,7 @@ func componentOptions() []hvue.ComponentOption {
 		hvue.Template(template),
 		movementeditmodal.RegisterComponent(),
 		movementtable.RegisterComponent(),
-		hvue.Props("value", "user"),
+		hvue.Props("value", "stock", "articles", "user"),
 		hvue.DataFunc(func(vm *hvue.VM) interface{} {
 			return NewMovementsUpdateModel(vm)
 		}),
@@ -95,6 +99,8 @@ type MovementsUpdateModel struct {
 	*js.Object
 
 	StockMovements *femovement.MovementStore `js:"value"`
+	Stock          *festock.Stock            `js:"stock"`
+	Articles       *fearticle.ArticleStore   `js:"articles"`
 	User           *feuser.User              `js:"user"`
 	Filter         string                    `js:"filter"`
 	FilterType     string                    `js:"filtertype"`
@@ -104,11 +110,14 @@ type MovementsUpdateModel struct {
 
 func NewMovementsUpdateModel(vm *hvue.VM) *MovementsUpdateModel {
 	mum := &MovementsUpdateModel{Object: tools.O()}
-	mum.VM = vm
 	mum.StockMovements = femovement.NewMovementStore()
+	mum.Stock = festock.NewStock()
+	mum.Articles = fearticle.NewArticleStore()
 	mum.User = feuser.NewUser()
 	mum.Filter = ""
 	mum.FilterType = ""
+
+	mum.VM = vm
 
 	return mum
 }

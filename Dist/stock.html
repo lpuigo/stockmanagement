@@ -65,8 +65,9 @@
             <div v-if="ActiveMode == 'movement'" style="height: 100%">
                 <movements-update
                         v-model="MovementStore"
+                        :articles="AvailableArticles"
+                        :stock="Stock"
                         :user="User"
-                        @edit-movement="EditMovement"
                 ></movements-update>
             </div>
             <div v-if="ActiveMode == 'article'" style="height: 100%">
