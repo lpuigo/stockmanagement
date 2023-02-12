@@ -2,6 +2,7 @@ package movementupdate
 
 import (
 	"github.com/gopherjs/gopherjs/js"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/movementeditmodal"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/movementtable"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement/movementconst"
@@ -14,6 +15,11 @@ import (
 const (
 	template string = `
 <el-container style="height: 100%">
+
+	<movement-edit-modal
+			ref="MovementEditModal"
+	></movement-edit-modal>
+
 	<el-header style="height: auto; padding: 0 15px; margin-bottom: 15px">
 		<el-row :gutter="10" type="flex" align="middle">
 			<el-col :span="10">
@@ -54,6 +60,7 @@ const (
 				v-model="value"
 				:user="user"
 				:filter="filter" :filtertype="filtertype"
+				@edit-movement="EditMovement"
 		></movements-table>
 	</el-main>
 </el-container>
@@ -67,6 +74,7 @@ func RegisterComponent() hvue.ComponentOption {
 func componentOptions() []hvue.ComponentOption {
 	return []hvue.ComponentOption{
 		hvue.Template(template),
+		movementeditmodal.RegisterComponent(),
 		movementtable.RegisterComponent(),
 		hvue.Props("value", "user"),
 		hvue.DataFunc(func(vm *hvue.VM) interface{} {
@@ -126,4 +134,10 @@ func (mum *MovementsUpdateModel) ClearFilter(vm *hvue.VM) {
 	mum = MovementsUpdateModelFromJS(vm.Object)
 	mum.FilterType = movementconst.FilterValueAll
 	mum.Filter = ""
+}
+
+func (mum *MovementsUpdateModel) EditMovement(vm *hvue.VM, mvt *femovement.Movement) {
+	mum = MovementsUpdateModelFromJS(vm.Object)
+	memm := movementeditmodal.MovementEditModalModelFromJS(vm.Refs("MovementEditModal"))
+	memm.Show(mvt, mum.User)
 }

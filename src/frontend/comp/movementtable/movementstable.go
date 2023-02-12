@@ -8,7 +8,6 @@ import (
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements"
-	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements/message"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/fedate"
 	"github.com/lpuigo/hvue"
 	"sort"
@@ -51,7 +50,10 @@ const (
 		:filters="FilterList('Type')" :filter-method="FilterHandler" filter-placement="bottom-end"
 	>
 		<template slot-scope="scope">
-			<span>{{FormatType(scope.row)}}</span>
+			<div class="header-menu-container on-hover">
+				<span>{{FormatType(scope.row)}}</span>
+				<i class="show link fa-solid fa-pen-to-square icon--left" @click="EditMovement(scope.row)"></i>
+			</div>
 		</template>
 	</el-table-column>
 
@@ -164,7 +166,12 @@ func (mtm *MovementsTableModel) TableRowClassName(vm *hvue.VM, rowInfo *js.Objec
 
 func (mtm *MovementsTableModel) HandleDoubleClickedRow(vm *hvue.VM, mvt *femovement.Movement) {
 	mtm = MovementsTableModelFromJS(vm.Object)
-	message.NotifyWarning(vm, "Double Click Movement", "front/comp/movementtable/HandleDoubleClickedRow à implémenter")
+	mtm.EditMovement(vm, mvt)
+}
+
+func (mtm *MovementsTableModel) EditMovement(vm *hvue.VM, mvt *femovement.Movement) {
+	//mtm = MovementsTableModelFromJS(vm.Object)
+	vm.Emit("edit-movement", mvt)
 }
 
 func (mtm *MovementsTableModel) FormatDate(d string) string {

@@ -6,6 +6,7 @@ import (
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festatus"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/json"
 )
 
 // type Movement reflects backend/model/movement.Movement
@@ -45,6 +46,35 @@ func NewMovement() *Movement {
 
 func MovementFromJS(o *js.Object) *Movement {
 	return &Movement{Object: o}
+}
+
+// Copy returns a deep copy of receiver
+func (m *Movement) Copy() *Movement {
+	return MovementFromJS(json.Parse(json.Stringify(m.Object)))
+}
+
+// Clone updates all receiver attributes with given Movement one's
+func (m *Movement) Clone(om *Movement) {
+	m.Id = om.Id
+	m.StockId = om.StockId
+	m.Type = om.Type
+	m.Date = om.Date
+	m.Actor = om.Actor
+	m.Responsible = om.Responsible
+	m.WorksiteId = om.WorksiteId
+	sh := []*festatus.Status{}
+	for _, status := range m.StatusHistory {
+		sh = append(sh, status.Copy())
+	}
+	m.StatusHistory = sh
+	afs := []*ArticleFlow{}
+	for _, flow := range m.ArticleFlows {
+		afs = append(afs, flow.Copy())
+	}
+	m.ArticleFlows = afs
+	m.CTime = om.CTime
+	m.UTime = om.UTime
+	m.DTime = om.DTime
 }
 
 func (m *Movement) GetCurrentStatus() *festatus.Status {

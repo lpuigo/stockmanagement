@@ -16,20 +16,18 @@
     <el-container style="height: 100%;border: 1px solid #eee">
         <el-header class="batec" style="height: 40px">
             <div class="header-menu-container">
-                <el-row :gutter="20" type="flex" align="middle">
-                    <h2 class="content"><i class="fa-solid fa-warehouse icon--left"></i>{{Title}}</h2>
-                </el-row>
+                <h2 class="content" style="width: 20vw"><i class="fa-solid fa-warehouse icon--left"></i>{{Title}}</h2>
 
                 <el-button-group>
                     <el-tooltip v-if="User.Permissions.Update" content="Enregistrer les modifications"
                                 placement="bottom" effect="light" open-delay="500">
                         <el-button class="icon" icon="fas fa-cloud-upload-alt icon--big" @click="SaveStock"
-                                   :disabled="!(!SaveInProgress && IsDirty)" size="mini"></el-button>
+                                   :disabled="!(!SaveInProgress && IsDirty)"></el-button>
                     </el-tooltip>
                     <el-tooltip content="Raffraichir / Annuler les modifications" placement="bottom" effect="light"
                                 open-delay="500">
                         <el-button class="icon" icon="fas fa-undo-alt icon--big" @click="LoadStock(true)"
-                                   :disabled="SaveInProgress" size="mini"></el-button>
+                                   :disabled="SaveInProgress"></el-button>
                     </el-tooltip>
                 </el-button-group>
 
@@ -68,6 +66,7 @@
                 <movements-update
                         v-model="MovementStore"
                         :user="User"
+                        @edit-movement="EditMovement"
                 ></movements-update>
             </div>
             <div v-if="ActiveMode == 'article'" style="height: 100%">

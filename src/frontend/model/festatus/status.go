@@ -4,6 +4,7 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/lpuig/batec/stockmanagement/src/backend/model/status/statusconst"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/json"
 )
 
 // type Status reflects backend/model/status.Status
@@ -24,6 +25,11 @@ func NewStatus() *Status {
 
 func StatusFromJS(o *js.Object) *Status {
 	return &Status{Object: o}
+}
+
+// Copy returns a deep copy of receiver
+func (s *Status) Copy() *Status {
+	return StatusFromJS(json.Parse(json.Stringify(s.Object)))
 }
 
 func GetLabel(s string) string {
