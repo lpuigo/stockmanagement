@@ -49,7 +49,7 @@ const template string = `<el-dialog
 					</el-row>
 				</el-header>
 				<el-main>
-					
+					<p>Liste des mouvements</p>
 				</el-main>				
 			</el-container>
 		</el-tab-pane>

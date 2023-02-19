@@ -77,7 +77,10 @@ const template string = `<el-dialog
 				<!--	Actions   -->
 				<el-table-column label="" width="80px">
 					<template slot="header" slot-scope="scope">
-						<el-button type="success" plain icon="fas fa-users fa-fw" size="mini" @click="AddNewUser()"></el-button>
+						<el-tooltip  placement="top" open-delay=300 effect="light">
+							<div slot="content">Ajouter un nouvel utilisateur</div>
+							<el-button type="success" plain icon="fas fa-users fa-fw" size="mini" @click="AddNewUser()"></el-button>
+						</el-tooltip>
 					</template>
 				</el-table-column>
 				
