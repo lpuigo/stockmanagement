@@ -2,6 +2,7 @@ package movementeditmodal
 
 import (
 	"github.com/gopherjs/gopherjs/js"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/articleflowtable"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festock"
@@ -45,6 +46,7 @@ func RegisterComponent() hvue.ComponentOption {
 func componentOptions() []hvue.ComponentOption {
 	return []hvue.ComponentOption{
 		hvue.Template(template),
+		articleflowtable.RegisterComponent(),
 		hvue.Props("stock", "articles"),
 		hvue.DataFunc(func(vm *hvue.VM) interface{} {
 			return NewMovementEditModalModel(vm)

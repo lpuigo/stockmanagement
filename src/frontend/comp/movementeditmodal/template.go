@@ -10,31 +10,18 @@ const template string = `<el-dialog
     -->
     <div slot="title">
 		<h2 style="margin: 0 10px" v-if="current_movement">
-			<i class="far fa-edit icon--left"></i>Edition du <span style="color: #ccebff">{{FormatType(edited_movement.Type)}} du {{FormatDate(edited_movement.Date)}}</span>
+			<i class="far fa-edit icon--left"></i>Edition de <span class="batec-header-text">{{FormatType(edited_movement.Type)}} du {{FormatDate(edited_movement.Date)}}</span>
 		</h2>
     </div>
     <!-- 
         Modal Body
-        style="height: 100%;"
     -->
-	<el-tabs tab-position="top" v-model="EditMode" style="height: 50vh;margin: 0px 15px;">
+	<el-tabs tab-position="top" v-model="EditMode" style="margin: 0px 15px;">
 		<!-- ====================	Movement Edition  ============================== -->
-		<el-tab-pane :label="FormatType(current_movement.Type)" name="acc" lazy=true style="padding: 0px 0px;">
-			<el-container style="margin: 0px 20px;">
+		<el-tab-pane :label="FormatType(current_movement.Type)" name="acc" lazy=true style="padding: 0px 0px">
+			<el-container style="margin: 0px;height: 50vh">
 				<el-header>
 					<!--	Actor & Responsible -->
-					<el-row :gutter="5" type="flex" align="middle" class="spaced">
-						<el-col :span="2" class="align-right">Acteur:</el-col>
-						<el-col :span="10">
-							<el-input v-model="current_movement.Actor" size="mini""></el-input>
-						</el-col>
-						<el-col :span="2" class="align-right">Responsable:</el-col>
-						<el-col :span="10">
-							<el-input v-model="current_movement.Responsible" size="mini""></el-input>
-						</el-col>
-					</el-row>
-			
-					<!--	Date  -->
 					<el-row :gutter="5" type="flex" align="middle" class="spaced">
 						<el-col :span="2" class="align-right">Date:</el-col>
 						<el-col :span="10">
@@ -46,10 +33,28 @@ const template string = `<el-dialog
 								@change="UpdateDate"
 							></el-date-picker>
 						</el-col>
+						<el-col :span="2" class="align-right">Acteur:</el-col>
+						<el-col :span="10">
+							<el-input v-model="current_movement.Actor" size="mini""></el-input>
+						</el-col>
+					</el-row>
+			
+					<!--	Date  -->
+					<el-row :gutter="5" type="flex" align="middle" class="spaced">
+						<el-col :span="2" class="align-right">Chantier:</el-col>
+						<el-col :span="10">chantier {{current_movement.WorksiteId}}</el-col>
+						<el-col :span="2" class="align-right">Responsable:</el-col>
+						<el-col :span="10">
+							<el-input v-model="current_movement.Responsible" size="mini""></el-input>
+						</el-col>
 					</el-row>
 				</el-header>
 				<el-main>
-					<p>Liste des mouvements</p>
+					<articleflow-table
+                        v-model="current_movement.ArticleFlows"
+                        :articles="articles"
+                        :user="User"
+					></articleflow-table>
 				</el-main>				
 			</el-container>
 		</el-tab-pane>

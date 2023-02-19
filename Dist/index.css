@@ -69,20 +69,24 @@ pre {
 /* =====================================================================================================================
    === Menu Header style
  */
-.batec {
+.batec-header {
     background: #F6BF32;
     color: #1F2B3C;
+}
+
+.batec-header-text {
+    color: #664c0a;
 }
 
 .aside-menu-container {
     padding: 5px;
 }
 
-.on-hover .show{
+.on-hover .show {
     visibility: hidden;
 }
 
-.on-hover:hover .show{
+.on-hover:hover .show {
     visibility: visible;
 }
 

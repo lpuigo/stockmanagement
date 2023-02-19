@@ -2,6 +2,8 @@ package fearticle
 
 import (
 	"github.com/gopherjs/gopherjs/js"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle/articleconst"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festock"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/ref"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements/message"
@@ -14,8 +16,9 @@ import (
 type ArticleStore struct {
 	*js.Object
 
-	Articles []*Article `js:"Articles"`
-	Loaded   bool       `js:"Loaded"`
+	Articles []*Article         `js:"Articles"`
+	Loaded   bool               `js:"Loaded"`
+	GetById  func(int) *Article `js:"GetById"`
 
 	Ref *ref.Ref `js:"Ref"`
 }
@@ -27,6 +30,7 @@ func NewArticleStore() *ArticleStore {
 	as.Ref = ref.NewRef(func() string {
 		return json.Stringify(as.Articles)
 	})
+	as.GetById = func(int) *Article { return nil }
 	return as
 }
 
@@ -66,8 +70,21 @@ func (as *ArticleStore) callGetArticles(vm *hvue.VM, onSuccess func()) {
 	})
 	as.Articles = loadedArticles
 	as.Ref.SetReference()
+	as.GetById = as.GenGetById()
 	as.Loaded = true
 	onSuccess()
+}
+
+// SetArticleStatusFromStock sets Article status depending on it is declared in stock or not
+func (as *ArticleStore) SetArticleStatusFromStock(stock *festock.Stock) {
+	isArticleInStockById := stock.GetArticleAvailability()
+	for _, art := range as.Articles {
+		if isArticleInStockById[art.Id] {
+			art.Status = articleconst.StatusValueOutOfStock
+			continue
+		}
+		art.Status = articleconst.StatusValueUnavailable
+	}
 }
 
 func (as *ArticleStore) CallUpdateArticles(vm *hvue.VM, onSuccess func()) {
@@ -96,14 +113,12 @@ func (as *ArticleStore) callUpdateArticles(vm *hvue.VM, onSuccess func()) {
 		return
 	}
 
-	as.Ref.SetReference()
 	msg := " article mis à jour"
 	if nbToUpd > 1 {
 		msg = " articles mis à jour"
 	}
 	message.NotifySuccess(vm, "Sauvegarde des articles", strconv.Itoa(nbToUpd)+msg)
 	onSuccess()
-
 }
 
 func (as *ArticleStore) getUpdatedArticles() []*Article {

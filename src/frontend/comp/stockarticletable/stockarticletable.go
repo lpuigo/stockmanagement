@@ -308,7 +308,6 @@ func (atm *StockArticlesTableModel) ToggleSelection(vm *hvue.VM) {
 	isArticleInStockById := atm.Stock.GetArticleAvailability()
 	for _, article := range atm.SelectedArticles {
 		article.ToggleInStock()
-		print("ToggleSelection", article.Designation, article.Status, article.Id)
 		switch article.Status {
 		case articleconst.StatusValueOutOfStock, articleconst.StatusValueAvailable:
 			isArticleInStockById[article.Id] = true
@@ -401,16 +400,6 @@ func (atm *StockArticlesTableModel) GetFilteredArticles() []*fearticle.Article {
 			}
 			return strings.Contains(strings.ToUpper(ss), expected)
 		}
-	}
-
-	// Set Article status : available in stock or not
-	isArticleInStockById := atm.Stock.GetArticleAvailability()
-	for _, art := range atm.Articles.Articles {
-		if isArticleInStockById[art.Id] {
-			art.Status = articleconst.StatusValueOutOfStock
-			continue
-		}
-		art.Status = articleconst.StatusValueUnavailable
 	}
 
 	// filter articles in accs slice to prevent change on atm.Articles caused by sort

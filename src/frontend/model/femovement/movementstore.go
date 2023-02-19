@@ -89,9 +89,9 @@ func (as *MovementStore) callUpdateMovements(vm *hvue.VM, onSuccess func()) {
 	}
 
 	as.Ref.SetReference()
-	msg := " movement mis à jour"
+	msg := " mouvement de stock mis à jour"
 	if nbToUpd > 1 {
-		msg = " movements mis à jour"
+		msg = " mouvements de stock mis à jour"
 	}
 	message.NotifySuccess(vm, "Sauvegarde des movements", strconv.Itoa(nbToUpd)+msg)
 	onSuccess()

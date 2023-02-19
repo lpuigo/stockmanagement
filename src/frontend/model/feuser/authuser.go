@@ -56,8 +56,40 @@ func (u *User) HasPermissionUpdate() bool {
 }
 
 // CallGetUser calls the server to request the connected User.
-func (u *User) CallGetUser(vm *hvue.VM, callback func()) {
+func (u *User) CallGetUser(vm *hvue.VM, notloggedCallback, loggedCallback func()) {
+	go u.callGetUser(vm, notloggedCallback, loggedCallback)
+}
+
+func (u *User) callGetUser(vm *hvue.VM, notloggedCallback, loggedCallback func()) {
 	req := xhr.NewRequest("GET", "/api/login")
+	req.Timeout = tools.LongTimeOut
+	req.ResponseType = xhr.JSON
+	err := req.Send(nil)
+	if err != nil {
+		message.ErrorStr(vm, "Oups! "+err.Error(), true)
+		return
+	}
+	if req.Status == tools.HttpUnauthorized {
+		notloggedCallback()
+		return
+	}
+	if req.Status != tools.HttpOK {
+		message.ErrorRequestMessage(vm, req)
+		return
+	}
+	newUser := UserFromJS(req.Response)
+
+	if newUser.Name == "" {
+		notloggedCallback()
+		return
+	}
+	u.Copy(newUser)
+	u.Connected = true
+	loggedCallback()
+}
+
+func (u *User) callLogout(vm *hvue.VM, callBack func()) {
+	req := xhr.NewRequest("DELETE", "/api/login")
 	req.Timeout = tools.LongTimeOut
 	req.ResponseType = xhr.JSON
 	err := req.Send(nil)
@@ -69,11 +101,6 @@ func (u *User) CallGetUser(vm *hvue.VM, callback func()) {
 		message.ErrorRequestMessage(vm, req)
 		return
 	}
-	u.Copy(UserFromJS(req.Response))
-	if u.Name == "" {
-		u = NewUser()
-		return
-	}
-	u.Connected = true
-	callback()
+	u.Copy(NewUser())
+	callBack()
 }

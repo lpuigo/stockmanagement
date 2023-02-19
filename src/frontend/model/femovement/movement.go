@@ -63,12 +63,12 @@ func (m *Movement) Clone(om *Movement) {
 	m.Responsible = om.Responsible
 	m.WorksiteId = om.WorksiteId
 	sh := []*festatus.Status{}
-	for _, status := range m.StatusHistory {
+	for _, status := range om.StatusHistory {
 		sh = append(sh, status.Copy())
 	}
 	m.StatusHistory = sh
 	afs := []*ArticleFlow{}
-	for _, flow := range m.ArticleFlows {
+	for _, flow := range om.ArticleFlows {
 		afs = append(afs, flow.Copy())
 	}
 	m.ArticleFlows = afs

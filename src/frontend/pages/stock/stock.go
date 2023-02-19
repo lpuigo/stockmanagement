@@ -11,7 +11,6 @@ import (
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements/message"
 	"github.com/lpuigo/hvue"
-	"honnef.co/go/js/xhr"
 )
 
 //go:generate bash ./makejs.sh
@@ -47,7 +46,7 @@ func main() {
 		}),
 		hvue.Computed("IsDirty", func(vm *hvue.VM) interface{} {
 			mpm := &MainPageModel{Object: vm.Object}
-			return mpm.StockStore.Ref.IsDirty()
+			return !(!mpm.StockStore.Ref.IsDirty() && !mpm.MovementStore.Ref.IsDirty())
 		}),
 	)
 
@@ -94,12 +93,6 @@ func NewMainPageModel() *MainPageModel {
 // Action Methods
 
 func (m *MainPageModel) InitPage(vm *hvue.VM) {
-	m.LoadStock(vm)
-	onLoadedArticles := func() {}
-	m.AvailableArticles.CallGetArticles(vm, onLoadedArticles)
-}
-
-func (m *MainPageModel) LoadStock(vm *hvue.VM) {
 	m = &MainPageModel{Object: vm.Object}
 	sid := tools.GetURLSearchParam("sid")
 	if sid == nil {
@@ -107,28 +100,66 @@ func (m *MainPageModel) LoadStock(vm *hvue.VM) {
 		return
 	}
 	stockId := sid.Int()
-	onLoaded := func() {
+	m.LoadStockWithId(stockId)
+}
+
+func (m *MainPageModel) LoadStockWithId(id int) {
+	onStockLoaded := func() {
+		// update page title
 		if len(m.StockStore.Stocks) > 0 {
 			m.Stock = m.StockStore.Stocks[0]
 			js.Global.Get("document").Set("title", m.Stock.Ref)
 		}
-		onLoadedMovements := func() {}
-		m.MovementStore.CallGetMovementsForStockId(vm, stockId, onLoadedMovements)
+		m.LoadMovementWithStockId(id)
 	}
-	m.StockStore.CallGetStockById(m.VM, stockId, onLoaded)
+	m.StockStore.CallGetStockById(m.VM, id, onStockLoaded)
+}
+
+func (m *MainPageModel) LoadMovementWithStockId(id int) {
+	// load pertaining movement
+	onLoadedMovements := func() {
+		m.LoadArticles()
+	}
+	m.MovementStore.CallGetMovementsForStockId(m.VM, id, onLoadedMovements)
+
+}
+
+func (m *MainPageModel) LoadArticles() {
+	onLoadedArticles := func() {
+		// Set Article status : available in stock or not
+		m.AvailableArticles.SetArticleStatusFromStock(m.Stock)
+	}
+	m.AvailableArticles.CallGetArticles(m.VM, onLoadedArticles)
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// HTML Methods
+
+func (m *MainPageModel) LoadStock(vm *hvue.VM) {
+	m = &MainPageModel{Object: vm.Object}
+	m.LoadStockWithId(m.Stock.Id)
 }
 
 func (m *MainPageModel) SaveStock(vm *hvue.VM) {
 	m = &MainPageModel{Object: vm.Object}
-	m.SaveInProgress = true
-	onUpdated := func() {
-		if len(m.StockStore.Stocks) > 0 {
-			m.Stock = m.StockStore.Stocks[0]
-			js.Global.Get("document").Set("title", m.Stock.Ref)
+	if m.StockStore.Ref.IsDirty() {
+		m.SaveInProgress = true
+		onUpdated := func() {
+			if len(m.StockStore.Stocks) > 0 {
+				m.Stock = m.StockStore.Stocks[0]
+				js.Global.Get("document").Set("title", m.Stock.Ref)
+			}
+			m.SaveInProgress = false
 		}
-		m.SaveInProgress = false
+		m.StockStore.CallUpdateStocks(m.VM, onUpdated)
 	}
-	m.StockStore.CallUpdateStocks(m.VM, onUpdated)
+	if m.MovementStore.Ref.IsDirty() {
+		m.SaveInProgress = true
+		onUpdated := func() {
+			m.SaveInProgress = false
+		}
+		m.MovementStore.CallUpdateMovements(m.VM, onUpdated)
+	}
 }
 
 // SwitchActiveMode handles ActiveMode change
@@ -150,52 +181,5 @@ func (m *MainPageModel) GetUserSession(callback func()) {
 	onUserLogged := func() {
 		callback()
 	}
-	go m.callGetUser(onUnauthorized, onUserLogged)
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// WS call Methods
-
-func (m *MainPageModel) callGetUser(notloggedCallback, loggedCallback func()) {
-	req := xhr.NewRequest("GET", "/api/login")
-	req.Timeout = tools.LongTimeOut
-	req.ResponseType = xhr.JSON
-	err := req.Send(nil)
-	if err != nil {
-		message.ErrorStr(m.VM, "Oups! "+err.Error(), true)
-		return
-	}
-	if req.Status == tools.HttpUnauthorized {
-		notloggedCallback()
-		return
-	}
-	if req.Status != tools.HttpOK {
-		message.ErrorRequestMessage(m.VM, req)
-		return
-	}
-	m.User.Copy(feuser.UserFromJS(req.Response))
-	if m.User.Name == "" {
-		m.User = feuser.NewUser()
-		return
-	}
-	m.User.Connected = true
-	loggedCallback()
-}
-
-func (m *MainPageModel) callLogout(callBack func()) {
-	req := xhr.NewRequest("DELETE", "/api/login")
-	req.Timeout = tools.LongTimeOut
-	req.ResponseType = xhr.JSON
-	err := req.Send(nil)
-	if err != nil {
-		message.ErrorStr(m.VM, "Oups! "+err.Error(), true)
-		return
-	}
-	if req.Status != tools.HttpOK {
-		message.ErrorRequestMessage(m.VM, req)
-		return
-	}
-	m.User = feuser.NewUser()
-	m.User.Connected = false
-	callBack()
+	m.User.CallGetUser(m.VM, onUnauthorized, onUserLogged)
 }
