@@ -10,9 +10,7 @@ import (
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festock"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
-	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements/message"
 	"github.com/lpuigo/hvue"
-	"honnef.co/go/js/xhr"
 	"strconv"
 )
 
@@ -94,7 +92,7 @@ func (m *MainPageModel) GetUserSession() {
 	onUserLogged := func() {
 		m.GetInfos()
 	}
-	go m.callGetUser(onUnauthorized, onUserLogged)
+	m.User.CallGetUser(m.VM, onUnauthorized, onUserLogged)
 }
 
 func (m *MainPageModel) ShowUserLogin() {
@@ -106,7 +104,7 @@ func (m *MainPageModel) ShowAdmin() {
 }
 
 func (m *MainPageModel) UserLogout() {
-	go m.callLogout()
+	m.User.CallLogout(m.VM, func() {})
 }
 
 func (m *MainPageModel) GetInfos() {
@@ -131,52 +129,4 @@ func (m *MainPageModel) SwitchActiveMode(vm *hvue.VM) {
 	//case "stock":
 	//	// do something specific
 	//}
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// WS call Methods
-
-func (m *MainPageModel) callGetUser(notloggedCallback, loggedCallback func()) {
-	req := xhr.NewRequest("GET", "/api/login")
-	req.Timeout = tools.LongTimeOut
-	req.ResponseType = xhr.JSON
-	err := req.Send(nil)
-	if err != nil {
-		message.ErrorStr(m.VM, "Oups! "+err.Error(), true)
-		return
-	}
-	if req.Status == tools.HttpUnauthorized {
-		notloggedCallback()
-		return
-	}
-	if req.Status != tools.HttpOK {
-		message.ErrorRequestMessage(m.VM, req)
-		return
-	}
-	m.User.Copy(feuser.UserFromJS(req.Response))
-	if m.User.Name == "" {
-		m.User = feuser.NewUser()
-		return
-	}
-	m.User.Connected = true
-	loggedCallback()
-}
-
-func (m *MainPageModel) callLogout() {
-	req := xhr.NewRequest("DELETE", "/api/login")
-	req.Timeout = tools.LongTimeOut
-	req.ResponseType = xhr.JSON
-	err := req.Send(nil)
-	if err != nil {
-		message.ErrorStr(m.VM, "Oups! "+err.Error(), true)
-		return
-	}
-	if req.Status != tools.HttpOK {
-		message.ErrorRequestMessage(m.VM, req)
-		return
-	}
-	m.User = feuser.NewUser()
-	m.User.Connected = false
-	m.ClearSiteInfos()
-	m.ClearModes()
 }

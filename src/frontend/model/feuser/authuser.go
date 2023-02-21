@@ -88,6 +88,10 @@ func (u *User) callGetUser(vm *hvue.VM, notloggedCallback, loggedCallback func()
 	loggedCallback()
 }
 
+func (u *User) CallLogout(vm *hvue.VM, callBack func()) {
+	go u.callLogout(vm, callBack)
+}
+
 func (u *User) callLogout(vm *hvue.VM, callBack func()) {
 	req := xhr.NewRequest("DELETE", "/api/login")
 	req.Timeout = tools.LongTimeOut
