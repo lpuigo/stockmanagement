@@ -45,6 +45,13 @@ func (as *ArticleStore) GenGetById() func(id int) *Article {
 	}
 }
 
+func (as *ArticleStore) SetArticles(arts []*Article) {
+	as.Articles = arts
+	as.GetById = as.GenGetById()
+	as.Ref.SetReference()
+	as.Loaded = true
+}
+
 func (as *ArticleStore) CallGetArticles(vm *hvue.VM, onSuccess func()) {
 	go as.callGetArticles(vm, onSuccess)
 }
@@ -68,10 +75,7 @@ func (as *ArticleStore) callGetArticles(vm *hvue.VM, onSuccess func()) {
 		a := ArticleFromJS(item)
 		loadedArticles = append(loadedArticles, a)
 	})
-	as.Articles = loadedArticles
-	as.Ref.SetReference()
-	as.GetById = as.GenGetById()
-	as.Loaded = true
+	as.SetArticles(loadedArticles)
 	onSuccess()
 }
 

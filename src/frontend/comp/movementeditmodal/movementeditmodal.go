@@ -4,6 +4,7 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/articleflowtable"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle/articleconst"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festock"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
@@ -15,8 +16,10 @@ type MovementEditModalModel struct {
 
 	EditMode string `js:"EditMode"`
 
-	StockArticles *fearticle.ArticleStore `js:"articles"`
-	Stock         *festock.Stock          `js:"stock"`
+	Articles *fearticle.ArticleStore `js:"articles"`
+	Stock    *festock.Stock          `js:"stock"`
+
+	StockArticles *fearticle.ArticleStore `js:"StockArticles"`
 }
 
 const (
@@ -27,8 +30,9 @@ const (
 func NewMovementEditModalModel(vm *hvue.VM) *MovementEditModalModel {
 	aemm := &MovementEditModalModel{MovementModalModel: NewMovementModalModel(vm)}
 	aemm.EditMode = modeMovement
-	aemm.StockArticles = fearticle.NewArticleStore()
+	aemm.Articles = fearticle.NewArticleStore()
 	aemm.Stock = festock.NewStock()
+	aemm.StockArticles = fearticle.NewArticleStore()
 	return aemm
 }
 
@@ -63,6 +67,7 @@ func componentOptions() []hvue.ComponentOption {
 // Modal Methods
 
 func (memm *MovementEditModalModel) Show(editedMvt *femovement.Movement, user *feuser.User) {
+	memm.SetStockArticles()
 	memm.MovementModalModel.Show(editedMvt, user)
 }
 
@@ -81,4 +86,20 @@ func (memm *MovementEditModalModel) FormatType(t string) string {
 
 func (memm *MovementEditModalModel) UpdateDate(vm *hvue.VM) {
 	//memm = MovementEditModalModelFromJS(vm.Object)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// inner Methods
+
+// SetStockArticles sets StockArticles store with articles that are defined in attached stock
+func (memm *MovementEditModalModel) SetStockArticles() {
+	memm.StockArticles = fearticle.NewArticleStore()
+	stockArticles := []*fearticle.Article{}
+	for _, article := range memm.Articles.Articles {
+		if article.Status == articleconst.StatusValueUnavailable {
+			continue
+		}
+		stockArticles = append(stockArticles, article)
+	}
+	memm.StockArticles.SetArticles(stockArticles)
 }

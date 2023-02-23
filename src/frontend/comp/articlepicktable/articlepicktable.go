@@ -1,4 +1,4 @@
-package articletable
+package articlepicktable
 
 import (
 	"github.com/gopherjs/gopherjs/js"
@@ -16,22 +16,16 @@ import (
 
 const (
 	template string = `
-<el-table ref="articleTable"
+<el-table ref="articlePickTable"
         :border=true
         :data="filteredArticles"
-        :default-sort = "{prop: 'Category', order: 'ascending'}"        
+        :default-sort = "{prop: 'Category', order: 'ascending'}" 
+		highlight-current-row
         :row-class-name="TableRowClassName" height="100%" size="mini"
-		@row-dblclick="HandleDoubleClickedRow"
+		@current-change="HandleSelectionChange"
 >
 <!--		:default-sort = "{prop: 'Stay.EndDate', order: 'descending'}"-->
 	
-	<!--	Index   -->
-	<el-table-column
-		label="N°" width="40px"
-		type="index"
-		index=1 
-	></el-table-column>
-
 	<!--	Category   -->
 	<el-table-column label="Catégorie" prop="Category" width="140px"
 		:resizable="true" :show-overflow-tooltip=true
@@ -76,20 +70,12 @@ const (
 <!--		</template>-->
 <!--	</el-table-column>-->
 	
-	<!--	UnitStock   -->
-	<el-table-column
-		:resizable="true" :show-overflow-tooltip=true 
-		prop="UnitStock" label="Unité" width="100px" align="center"
-		sortable :sort-by="['UnitStock', 'Category', 'SubCategory', 'Designation']"  
-		:filters="FilterList('UnitStock')" :filter-method="FilterHandler" filter-placement="bottom-end"
-	></el-table-column>
-	
 </el-table>
 `
 )
 
 func RegisterComponent() hvue.ComponentOption {
-	return hvue.Component("articles-table", componentOptions()...)
+	return hvue.Component("articles-pick-table", componentOptions()...)
 }
 
 func componentOptions() []hvue.ComponentOption {
@@ -97,11 +83,11 @@ func componentOptions() []hvue.ComponentOption {
 		hvue.Template(template),
 		hvue.Props("value", "user", "filter", "filtertype"),
 		hvue.DataFunc(func(vm *hvue.VM) interface{} {
-			return NewArticlesTableModel(vm)
+			return NewArticlePickTableModel(vm)
 		}),
-		hvue.MethodsOf(&ArticlesTableModel{}),
+		hvue.MethodsOf(&ArticlePickTableModel{}),
 		hvue.Computed("filteredArticles", func(vm *hvue.VM) interface{} {
-			atm := ArticlesTableModelFromJS(vm.Object)
+			atm := ArticlePickTableModelFromJS(vm.Object)
 			return atm.GetFilteredArticles()
 		}),
 	}
@@ -110,7 +96,7 @@ func componentOptions() []hvue.ComponentOption {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Comp Model
 
-type ArticlesTableModel struct {
+type ArticlePickTableModel struct {
 	*js.Object
 
 	Articles   *fearticle.ArticleStore `js:"value"`
@@ -121,8 +107,8 @@ type ArticlesTableModel struct {
 	VM *hvue.VM `js:"VM"`
 }
 
-func NewArticlesTableModel(vm *hvue.VM) *ArticlesTableModel {
-	atm := &ArticlesTableModel{Object: tools.O()}
+func NewArticlePickTableModel(vm *hvue.VM) *ArticlePickTableModel {
+	atm := &ArticlePickTableModel{Object: tools.O()}
 	atm.VM = vm
 	atm.Articles = fearticle.NewArticleStore()
 	atm.User = feuser.NewUser()
@@ -132,40 +118,45 @@ func NewArticlesTableModel(vm *hvue.VM) *ArticlesTableModel {
 	return atm
 }
 
-func ArticlesTableModelFromJS(o *js.Object) *ArticlesTableModel {
-	return &ArticlesTableModel{Object: o}
+func ArticlePickTableModelFromJS(o *js.Object) *ArticlePickTableModel {
+	return &ArticlePickTableModel{Object: o}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // HTML Functions
 
-func (atm *ArticlesTableModel) TableRowClassName(vm *hvue.VM, rowInfo *js.Object) string {
-	//atm = ArticlesTableModelFromJS(vm.Object)
+func (atm *ArticlePickTableModel) TableRowClassName(vm *hvue.VM, rowInfo *js.Object) string {
+	//atm = ArticlePickTableModelFromJS(vm.Object)
 	//as := fearticle.ArticleFromJS(rowInfo.Get("row"))
 	//return as.GetAvailabilityRowClass()
 	return ""
 }
 
-func (atm *ArticlesTableModel) HandleDoubleClickedRow(vm *hvue.VM, ar *fearticle.Article) {
-	atm = ArticlesTableModelFromJS(vm.Object)
+func (atm *ArticlePickTableModel) HandleDoubleClickedRow(vm *hvue.VM, ar *fearticle.Article) {
+	atm = ArticlePickTableModelFromJS(vm.Object)
 	message.NotifyWarning(vm, "Double Click Article", "front/comp/articletable/HandleDoubleClickedRow à implémenter")
+}
+
+func (atm *ArticlePickTableModel) HandleSelectionChange(vm *hvue.VM, selArt *fearticle.Article) {
+	atm = ArticlePickTableModelFromJS(vm.Object)
+	atm.VM.Emit("picked-article", selArt)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Column Filtering Related Methods
 
 // FilteredCategoryValue returns pre filtered values for Category
-func (vtm *ArticlesTableModel) FilteredCategoryValue() []string {
+func (vtm *ArticlePickTableModel) FilteredCategoryValue() []string {
 	return []string{}
 }
 
-func (vtm *ArticlesTableModel) FilterHandler(vm *hvue.VM, value string, p *js.Object, col *js.Object) bool {
+func (vtm *ArticlePickTableModel) FilterHandler(vm *hvue.VM, value string, p *js.Object, col *js.Object) bool {
 	prop := col.Get("property").String()
 	return p.Get(prop).String() == value
 }
 
-func (vtm *ArticlesTableModel) FilterList(vm *hvue.VM, prop string) []*elements.ValText {
-	vtm = ArticlesTableModelFromJS(vm.Object)
+func (vtm *ArticlePickTableModel) FilterList(vm *hvue.VM, prop string) []*elements.ValText {
+	vtm = ArticlePickTableModelFromJS(vm.Object)
 	count := map[string]int{}
 	attribs := []string{}
 
@@ -204,7 +195,7 @@ func (vtm *ArticlesTableModel) FilterList(vm *hvue.VM, prop string) []*elements.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Actions Functions
 
-func (atm *ArticlesTableModel) GetFilteredArticles() []*fearticle.Article {
+func (atm *ArticlePickTableModel) GetFilteredArticles() []*fearticle.Article {
 	filter := func(ar *fearticle.Article) bool {
 		return true
 	}

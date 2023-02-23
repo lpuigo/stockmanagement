@@ -52,7 +52,7 @@ const template string = `<el-dialog
 				<el-main>
 					<articleflow-table
                         v-model="current_movement.ArticleFlows"
-                        :articles="articles"
+                        :articles="StockArticles"
                         :user="User"
 					></articleflow-table>
 				</el-main>				
