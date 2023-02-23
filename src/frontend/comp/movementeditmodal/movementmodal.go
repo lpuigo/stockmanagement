@@ -57,12 +57,16 @@ func (mmm *MovementModalModel) Show(editedMvt *femovement.Movement, user *feuser
 	mmm.Visible = true
 }
 
-func (mmm *MovementModalModel) HideWithControl() {
+func (mmm *MovementModalModel) HideWithControl(onConfirm func()) {
+	exitFn := func() {
+		onConfirm()
+		mmm.Hide()
+	}
 	if mmm.HasChanged() {
-		message.ConfirmWarning(mmm.VM, "OK pour perdre les changements effectués ?", mmm.Hide)
+		message.ConfirmWarning(mmm.VM, "OK pour perdre les changements effectués ?", exitFn)
 		return
 	}
-	mmm.Hide()
+	exitFn()
 }
 
 func (mmm *MovementModalModel) Hide() {

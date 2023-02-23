@@ -4,6 +4,7 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/lpuig/batec/stockmanagement/src/backend/model/status/statusconst"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/fedate"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/json"
 )
 
@@ -17,7 +18,7 @@ type Status struct {
 
 func NewStatus() *Status {
 	s := &Status{Object: tools.O()}
-	s.Time = ""
+	s.Time = fedate.ShortTimestamp()
 	s.Actor = ""
 	s.Status = ""
 	return s

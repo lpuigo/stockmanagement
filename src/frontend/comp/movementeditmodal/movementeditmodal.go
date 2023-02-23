@@ -20,11 +20,12 @@ type MovementEditModalModel struct {
 	Stock    *festock.Stock          `js:"stock"`
 
 	StockArticles *fearticle.ArticleStore `js:"StockArticles"`
+
+	IsNewMovement bool `js:"IsNewMovement"`
 }
 
 const (
-	modeMovement   string = "acc"
-	modeRentalStay string = "stay"
+	modeMovement string = "acc"
 )
 
 func NewMovementEditModalModel(vm *hvue.VM) *MovementEditModalModel {
@@ -33,6 +34,7 @@ func NewMovementEditModalModel(vm *hvue.VM) *MovementEditModalModel {
 	aemm.Articles = fearticle.NewArticleStore()
 	aemm.Stock = festock.NewStock()
 	aemm.StockArticles = fearticle.NewArticleStore()
+	aemm.IsNewMovement = false
 	return aemm
 }
 
@@ -66,15 +68,30 @@ func componentOptions() []hvue.ComponentOption {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Modal Methods
 
-func (memm *MovementEditModalModel) Show(editedMvt *femovement.Movement, user *feuser.User) {
+func (memm *MovementEditModalModel) Show(editedMvt *femovement.Movement, user *feuser.User, isNewMovement bool) {
 	memm.SetStockArticles()
+	memm.IsNewMovement = isNewMovement
 	memm.MovementModalModel.Show(editedMvt, user)
 }
 
 func (memm *MovementEditModalModel) ConfirmChange(vm *hvue.VM) {
 	memm = MovementEditModalModelFromJS(vm.Object)
+	name := memm.CurrentMovement.Actor
+	validate := false
+	if memm.User.HasPermissionValidate() {
+		name = memm.User.Name
+		validate = true
+	}
+	memm.CurrentMovement.AddStatus(name, validate)
 	memm.MovementModalModel.ConfirmChange()
-	vm.Emit("edited-movement", memm.EditedMovement)
+	if memm.IsNewMovement {
+		vm.Emit("new-movement", memm.EditedMovement)
+	}
+}
+
+func (memm *MovementEditModalModel) CancelChange(vm *hvue.VM) {
+	memm = MovementEditModalModelFromJS(vm.Object)
+	memm.HideWithControl(func() {})
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

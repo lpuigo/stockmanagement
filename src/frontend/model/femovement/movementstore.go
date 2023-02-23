@@ -17,6 +17,8 @@ type MovementStore struct {
 	Movements []*Movement `js:"Movements"`
 
 	Ref *ref.Ref `js:"Ref"`
+
+	NextNewId int `js:"NextNewId"`
 }
 
 func NewMovementStore() *MovementStore {
@@ -25,7 +27,27 @@ func NewMovementStore() *MovementStore {
 	as.Ref = ref.NewRef(func() string {
 		return json.Stringify(as.Movements)
 	})
+	as.NextNewId = 0
 	return as
+}
+
+func (as *MovementStore) GetNextNewId() int {
+	as.NextNewId--
+	return as.NextNewId
+}
+
+func (as *MovementStore) AddNewMovement(mvt *Movement) {
+	mvt.Id = as.GetNextNewId()
+	as.Movements = append(as.Movements, mvt)
+}
+
+func (as *MovementStore) DeleteMovement(mvt *Movement) {
+	for i, movement := range as.Movements {
+		if movement.Id == mvt.Id {
+			as.Get("Movements").Call("splice", i, 1)
+			break
+		}
+	}
 }
 
 func (as *MovementStore) CallGetMovementsForStockId(vm *hvue.VM, stockId int, onSuccess func()) {

@@ -22,6 +22,7 @@ const (
 			ref="MovementEditModal"
 			:stock="stock"
 			:articles="articles"
+			@new-movement="StoreNewMovement"
 	></movement-edit-modal>
 
 	<el-header style="height: auto; padding: 0 15px; margin-bottom: 15px">
@@ -29,13 +30,13 @@ const (
 			<el-col :span="10">
 				<el-button-group>
 					<el-tooltip content="Retrait" placement="bottom" effect="light" open-delay="500">
-						<el-button type="warning" plain icon="fa-solid fa-right-from-bracket icon--big"></el-button>
+						<el-button type="warning" plain icon="fa-solid fa-right-from-bracket icon--big" @click="AddMovement('withdrawal')"></el-button>
 					</el-tooltip>
 					<el-tooltip content="Approvisionnement" placement="bottom" effect="light" open-delay="500">
-						<el-button type="warning" plain icon="fa-solid fa-right-to-bracket icon--big"></el-button>
+						<el-button type="warning" plain icon="fa-solid fa-right-to-bracket icon--big" @click="AddMovement('supply')"></el-button>
 					</el-tooltip>
 					<el-tooltip content="Inventaire" placement="bottom" effect="light" open-delay="500">
-						<el-button type="warning" plain icon="fa-solid fa-list-check icon--big"></el-button>
+						<el-button type="warning" plain icon="fa-solid fa-list-check icon--big" @click="AddMovement('inventory')"></el-button>
 					</el-tooltip>
 				</el-button-group>
 			</el-col>
@@ -147,6 +148,32 @@ func (mum *MovementsUpdateModel) ClearFilter(vm *hvue.VM) {
 
 func (mum *MovementsUpdateModel) EditMovement(vm *hvue.VM, mvt *femovement.Movement) {
 	mum = MovementsUpdateModelFromJS(vm.Object)
-	memm := movementeditmodal.MovementEditModalModelFromJS(vm.Refs("MovementEditModal"))
-	memm.Show(mvt, mum.User)
+	mum.ShowEditMovement(mvt, false)
+}
+
+func (mum *MovementsUpdateModel) AddMovement(vm *hvue.VM, mvtType string) {
+	mum = MovementsUpdateModelFromJS(vm.Object)
+
+	switch mvtType {
+	case movementconst.TypeValueWithdrawal:
+		nm := femovement.CreateNewMovement(mum.Stock.Id, mvtType)
+		mum.ShowEditMovement(nm, true)
+	case movementconst.TypeValueSupply:
+		nm := femovement.CreateNewMovement(mum.Stock.Id, mvtType)
+		mum.ShowEditMovement(nm, true)
+	case movementconst.TypeValueInventory:
+	}
+}
+
+func (mum *MovementsUpdateModel) StoreNewMovement(vm *hvue.VM, mvt *femovement.Movement) {
+	mum = MovementsUpdateModelFromJS(vm.Object)
+	mum.StockMovements.AddNewMovement(mvt)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Inner Functions
+
+func (mum *MovementsUpdateModel) ShowEditMovement(mvt *femovement.Movement, isNewMovement bool) {
+	memm := movementeditmodal.MovementEditModalModelFromJS(mum.VM.Refs("MovementEditModal"))
+	memm.Show(mvt, mum.User, isNewMovement)
 }

@@ -47,12 +47,12 @@ func (u *User) HasPermissionInvoice() bool {
 	return u.Permissions["Invoice"]
 }
 
-func (u *User) HasPermissionHR() bool {
-	return u.Permissions["HR"]
+func (u *User) HasPermissionValidate() bool {
+	return u.Permissions["Validate"]
 }
 
-func (u *User) HasPermissionUpdate() bool {
-	return u.Permissions["Update"]
+func (u *User) HasPermissionAdmin() bool {
+	return u.Permissions["Admin"]
 }
 
 // CallGetUser calls the server to request the connected User.

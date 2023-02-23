@@ -2,10 +2,12 @@ package femovement
 
 import (
 	"github.com/gopherjs/gopherjs/js"
+	"github.com/lpuig/batec/stockmanagement/src/backend/model/status/statusconst"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement/movementconst"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festatus"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/fedate"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/json"
 )
 
@@ -42,6 +44,17 @@ func NewMovement() *Movement {
 	m.UTime = ""
 	m.DTime = ""
 	return m
+}
+
+func CreateNewMovement(stockId int, mvtType string) *Movement {
+	nm := NewMovement()
+	nm.StockId = stockId
+	nm.Type = mvtType
+	nm.Date = fedate.TodayAfter(0)
+	nm.Actor = "A Saisir"
+	nm.Responsible = "A Saisir"
+
+	return nm
 }
 
 func MovementFromJS(o *js.Object) *Movement {
@@ -82,6 +95,17 @@ func (m *Movement) GetCurrentStatus() *festatus.Status {
 		return m.StatusHistory[0]
 	}
 	return nil
+}
+
+func (m *Movement) AddStatus(name string, validated bool) {
+	s := festatus.NewStatus()
+	s.Actor = name
+	if validated {
+		s.Status = statusconst.ValueValidated
+	} else {
+		s.Status = statusconst.ValueToBeValidated
+	}
+	m.StatusHistory = append([]*festatus.Status{s}, m.StatusHistory...)
 }
 
 func GetTypeLabel(t string) string {

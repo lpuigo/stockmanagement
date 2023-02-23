@@ -79,7 +79,7 @@ const template string = `<el-dialog
     <!-- 
         Modal Footer Action Bar
     -->
-    <span slot="footer">
+    <div slot="footer">
 		<el-row :gutter="15">
 			<el-col :span="24" style="text-align: right">
 				<el-tooltip :open-delay="500" effect="light">
@@ -88,10 +88,10 @@ const template string = `<el-dialog
                                type="info"></el-button>
 				</el-tooltip>
 				
-				<el-button @click="Hide" size="mini">Fermer</el-button>
+				<el-button @click="CancelChange" size="mini">Fermer</el-button>
 				
 				<el-button :disabled="!hasChanged" type="success" @click="ConfirmChange" plain size="mini">Valider</el-button>
 			</el-col>
 		</el-row>
-	</span>
+	</div>
 </el-dialog>`

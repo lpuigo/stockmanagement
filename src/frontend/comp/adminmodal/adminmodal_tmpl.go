@@ -52,16 +52,13 @@ const template string = `<el-dialog
 						<el-row :gutter="5" type="flex" align="middle" class="spaced">
 							<el-col :span="2" class="align-right">Permissions:</el-col>
 							<el-col :span="6" >
-								<p><el-switch v-model="scope.row.Permissions.Update" active-text="Peut faire des mises à jour"></el-switch></p>
-								<p><el-switch v-model="scope.row.Permissions.Create" active-text="Peut créer des éléments"></el-switch></p>
+								<p><el-switch v-model="scope.row.Permissions.Validate" active-text="Validation des mouvements"></el-switch></p>
 							</el-col>
 							<el-col :span="6" >
-								<p><el-switch v-model="scope.row.Permissions.HR" active-text="Accès aux infos RH"></el-switch></p>
-								<p><el-switch v-model="scope.row.Permissions.Invoice" active-text="Accès aux infos financières"></el-switch></p>
+								<p><el-switch v-model="scope.row.Permissions.Invoice" active-text="Accès aux prix"></el-switch></p>
 							</el-col>
 							<el-col :span="6" >
-								<p><el-switch v-model="scope.row.Permissions.Admin" active-text="Accès aux fonctions d'administration"></el-switch></p>
-								<p><el-switch v-model="scope.row.Permissions.Review" active-text="Accès restreint en lecture seulement"></el-switch></p>
+								<p><el-switch v-model="scope.row.Permissions.Admin" active-text="Administrateur"></el-switch></p>
 							</el-col>
 						</el-row>
 					</template>
@@ -99,12 +96,9 @@ const template string = `<el-dialog
 				>
 					<template slot-scope="scope">
 						<span>
-							<i class="fas fa-edit icon--medium icon--left" :class="{ 'icon--disabled': !scope.row.Permissions.Update }"></i>
-							<i class="fas fa-plus-circle icon--medium icon--left" :class="{ 'icon--disabled': !scope.row.Permissions.Create }"></i>
-							<i class="fas fa-id-card icon--medium icon--left" :class="{ 'icon--disabled': !scope.row.Permissions.HR }"></i>
+							<i class="fas fa-edit icon--medium icon--left" :class="{ 'icon--disabled': !scope.row.Permissions.Validate }"></i>
 							<i class="fas fa-euro-sign icon--medium icon--left" :class="{ 'icon--disabled': !scope.row.Permissions.Invoice }"></i>
 							<i class="fas fa-tools icon--medium icon--left" :class="{ 'icon--disabled': !scope.row.Permissions.Admin }"></i>
-							<i class="fas fa-eye icon--medium" :class="{ 'icon--disabled': !scope.row.Permissions.Review }"></i>
 						</span>
 					</template>
 				</el-table-column>

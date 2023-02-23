@@ -8,7 +8,7 @@ import (
 const (
 	TimeJSLayout                string = "2006-01-02"
 	TimeStampLayout             string = "2006-01-02 15:04:05.000"
-	ShortTimeStampLayout        string = "2006-01-02 15:04:05"
+	ShortTimeStampLayout        string = "2006-01-02 150405"
 	ShortTimeStampDisplayLayout string = "02/01/2006 15:04:05"
 )
 
@@ -95,8 +95,14 @@ func TodayAfter(d int) string {
 	return t.Format(TimeJSLayout)
 }
 
+// Timestamp returns YYYY-MM-DD HH:MM:SS.sss
 func Timestamp() string {
 	return time.Now().Format(TimeStampLayout)
+}
+
+// ShortTimestamp returns YYYY-MM-DD HHMMSS
+func ShortTimestamp() string {
+	return time.Now().Format(ShortTimeStampLayout)
 }
 
 // DateString convert Date (js format YYYY-MM-DD) to DD/MM/YYYY
@@ -108,7 +114,7 @@ func DateString(v string) string {
 	return "-"
 }
 
-// DateString convert TimeStamp (js format YYYY-MM-DD hh:mm:ss) to DD/MM/YYYY hh:mm:ss
+// DateString convert TimeStamp (js format YYYY-MM-DD hhmmss) to DD/MM/YYYY hh:mm:ss
 func ShortTimeStampString(v string) string {
 	t, err := time.Parse(ShortTimeStampLayout, v)
 	if err != nil {
