@@ -8,6 +8,7 @@ import (
 	"github.com/xuri/excelize/v2"
 	"io"
 	"strconv"
+	"strings"
 )
 
 func checkValue(xf *excelize.File, sheetname, axis, value string) error {
@@ -38,9 +39,12 @@ var colArticlesTitle = []string{
 	"Ref",
 	"PhotoId",
 	"Location",
-	"UnitStock",
-	"UnitAccounting",
-	"ConvStockAccounting",
+	"InvoiceUnit",
+	"InvoiceUnitPrice",
+	"InvoiceUnitRetailQty",
+	"RetailUnit",
+	"RetailUnitStockQty",
+	"StockUnit",
 	"Status",
 }
 
@@ -75,6 +79,17 @@ func LoadArticlesFromXlsx(r io.Reader) ([]*Article, error) {
 		}
 		return row[col-1]
 	}
+	getFloat := func(title string) float64 {
+		val := getCol(title)
+		if val == "" {
+			return 0
+		}
+		res, err := strconv.ParseFloat(strings.Replace(val, ",", ".", -1), 64)
+		if err != nil {
+			return 0
+		}
+		return res
+	}
 
 	newID := -1
 
@@ -98,24 +113,24 @@ func LoadArticlesFromXlsx(r io.Reader) ([]*Article, error) {
 			id = getNextNewId()
 		}
 
-		convStockAccounting, err := strconv.ParseFloat(getCol("ConvStockAccounting"), 64)
-		if err != nil {
-			convStockAccounting = 0
-		}
 		art := &Article{
-			Id:                  id,
-			Category:            getCol("Category"),
-			SubCategory:         getCol("SubCategory"),
-			Designation:         getCol("Designation"),
-			Ref:                 getCol("Ref"),
-			Manufacturer:        getCol("Manufacturer"),
-			PhotoId:             getCol("PhotoId"),
-			Location:            getCol("Location"),
-			UnitStock:           getCol("UnitStock"),
-			UnitAccounting:      getCol("UnitAccounting"),
-			ConvStockAccounting: convStockAccounting,
-			Status:              getCol("Status"),
-			TimeStamp:           timestamp.TimeStamp{},
+			Id:                   id,
+			Category:             getCol("Category"),
+			SubCategory:          getCol("SubCategory"),
+			Designation:          getCol("Designation"),
+			Ref:                  getCol("Ref"),
+			Manufacturer:         getCol("Manufacturer"),
+			PhotoId:              getCol("PhotoId"),
+			Location:             getCol("Location"),
+			InvoiceUnit:          getCol("InvoiceUnit"),
+			InvoiceUnitPrice:     getFloat("InvoiceUnitPrice"),
+			InvoiceUnitRetailQty: getFloat("InvoiceUnitRetailQty"),
+			RetailUnit:           getCol("RetailUnit"),
+			RetailUnitStockQty:   getFloat("RetailUnitStockQty"),
+			StockUnit:            getCol("StockUnit"),
+
+			Status:    getCol("Status"),
+			TimeStamp: timestamp.TimeStamp{},
 		}
 
 		articles = append(articles, art)
@@ -154,12 +169,20 @@ func WriteArticlesToXlsx(w io.Writer, articles []*Article) error {
 				xf.SetCellStr(sheetName, xlstools.RcToAxis(rowNum, colNum), article.PhotoId)
 			case "Location":
 				xf.SetCellStr(sheetName, xlstools.RcToAxis(rowNum, colNum), article.Location)
-			case "UnitStock":
-				xf.SetCellStr(sheetName, xlstools.RcToAxis(rowNum, colNum), article.UnitStock)
-			case "UnitAccounting":
-				xf.SetCellStr(sheetName, xlstools.RcToAxis(rowNum, colNum), article.UnitAccounting)
-			case "ConvStockAccounting":
-				xf.SetCellFloat(sheetName, xlstools.RcToAxis(rowNum, colNum), article.ConvStockAccounting, 3, 64)
+
+			case "InvoiceUnit":
+				xf.SetCellStr(sheetName, xlstools.RcToAxis(rowNum, colNum), article.InvoiceUnit)
+			case "InvoiceUnitPrice":
+				xf.SetCellFloat(sheetName, xlstools.RcToAxis(rowNum, colNum), article.InvoiceUnitPrice, 3, 64)
+			case "InvoiceUnitRetailQty":
+				xf.SetCellFloat(sheetName, xlstools.RcToAxis(rowNum, colNum), article.InvoiceUnitRetailQty, 3, 64)
+			case "RetailUnit":
+				xf.SetCellStr(sheetName, xlstools.RcToAxis(rowNum, colNum), article.RetailUnit)
+			case "RetailUnitStockQty":
+				xf.SetCellFloat(sheetName, xlstools.RcToAxis(rowNum, colNum), article.RetailUnitStockQty, 3, 64)
+			case "StockUnit":
+				xf.SetCellStr(sheetName, xlstools.RcToAxis(rowNum, colNum), article.StockUnit)
+
 			case "Status":
 				xf.SetCellStr(sheetName, xlstools.RcToAxis(rowNum, colNum), article.Status)
 			}
