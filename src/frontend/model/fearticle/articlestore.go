@@ -150,3 +150,7 @@ func makeDictArticles(accs []*Article) map[int]*Article {
 	}
 	return res
 }
+
+func (as *ArticleStore) GetExportArticlestoXlsxURL() string {
+	return "/api/articles/export"
+}

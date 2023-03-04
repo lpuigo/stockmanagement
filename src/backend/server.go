@@ -112,6 +112,8 @@ func createRouter(mgr *manager.Manager, conf *Conf) http.Handler {
 	// Articles methods
 	router.HandleFunc("/api/articles", withUserManager("GetArticles", route.GetArticles)).Methods("GET")
 	router.HandleFunc("/api/articles", withUserManager("UpdateArticles", route.UpdateArticles)).Methods("PUT")
+	router.HandleFunc("/api/articles/export", withUserManager("GetArticlesExport", route.GetArticlesExport)).Methods("GET")
+	router.HandleFunc("/api/articles/import", withUserManager("PostArticlesImport", route.PostArticlesImport)).Methods("POST")
 
 	// Movements methods
 	router.HandleFunc("/api/movements", withUserManager("GetMovements", route.GetMovements)).Methods("GET")

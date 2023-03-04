@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/adminmodal"
-	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/articletable"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/articlescatalog"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/comp/userloginmodal"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle/articleconst"
@@ -23,7 +23,7 @@ func main() {
 		hvue.El("#app"),
 		userloginmodal.RegisterComponent(),
 		adminmodal.RegisterComponent(),
-		articletable.RegisterComponent(),
+		articlescatalog.RegisterComponent(),
 		hvue.DataS(mpm),
 		hvue.MethodsOf(mpm),
 		hvue.Mounted(func(vm *hvue.VM) {

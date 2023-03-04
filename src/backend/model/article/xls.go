@@ -62,7 +62,7 @@ func LoadArticlesFromXlsx(r io.Reader) ([]*Article, error) {
 
 	// parse header
 	colTitleDict := make(map[string]int)
-	for i, _ := range colArticlesTitle {
+	for i := range colArticlesTitle {
 		title, _ := xf.GetCellValue(sheetName, xlstools.RcToAxis(rowArticleHeader, i+1))
 		colTitleDict[title] = i + 1
 	}
@@ -91,12 +91,10 @@ func LoadArticlesFromXlsx(r io.Reader) ([]*Article, error) {
 		return res
 	}
 
-	newID := -1
-
+	newID := 0
 	getNextNewId := func() int {
-		id := newID
 		newID--
-		return id
+		return newID
 	}
 
 	// parse each row

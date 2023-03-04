@@ -78,11 +78,10 @@
 
             <!-- ====================	Articles catalog description  ============================== -->
             <div v-if="ActiveMode == 'article'" style="height: 100%">
-                <articles-table
+                <articles-catalog
                         v-model="AvailableArticles"
                         :user="User"
-                        :filter="Filter" :filtertype="FilterType"
-                ></articles-table>
+                ></articles-catalog>
             </div>
 
             <!-- ====================	Stock description  ============================== -->

@@ -19,4 +19,11 @@ const (
 	FilterLabelDes string = "Désignation"
 	FilterLabelRef string = "Référence"
 	FilterLabelCat string = "Catégorie"
+
+	UnitLiter       string = "l"
+	UnitMeter       string = "m"
+	UnitLinearMeter string = "ml"
+	UnitPiece       string = "unit"
+	UnitSquareMeter string = "m²"
+	UnitRoll        string = "rouleau"
 )

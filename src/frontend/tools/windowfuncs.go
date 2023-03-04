@@ -33,3 +33,7 @@ func WindowHasHover() bool {
 	res := js.Global.Get("window").Call("matchMedia", "(any-hover: hover)")
 	return res.Get("matches").Bool()
 }
+
+func OpenUri(uri string) {
+	js.Global.Get("window").Call("open", uri)
+}

@@ -2,7 +2,9 @@ package article
 
 import (
 	"fmt"
+	"github.com/lpuig/batec/stockmanagement/src/backend/model/date"
 	"github.com/lpuig/batec/stockmanagement/src/backend/persist"
+	"io"
 )
 
 type ArticlesPersister struct {
@@ -88,4 +90,13 @@ func (ap *ArticlesPersister) UpdateArticles(updatedArticles []*Article) error {
 		}
 	}
 	return nil
+}
+
+// Export / Import to XLSx methods
+func (ap *ArticlesPersister) ExportName() string {
+	return fmt.Sprintf("%s Catalogue Articles.xlsx", date.Today().String())
+}
+
+func (ap *ArticlesPersister) XLSExport(writer io.Writer) error {
+	return WriteArticlesToXlsx(writer, ap.GetArticles())
 }
