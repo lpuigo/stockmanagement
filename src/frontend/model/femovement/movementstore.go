@@ -31,36 +31,36 @@ func NewMovementStore() *MovementStore {
 	return as
 }
 
-func (as *MovementStore) GetNextNewId() int {
-	as.NextNewId--
-	return as.NextNewId
+func (ms *MovementStore) GetNextNewId() int {
+	ms.NextNewId--
+	return ms.NextNewId
 }
 
-func (as *MovementStore) AddNewMovement(mvt *Movement) {
-	mvt.Id = as.GetNextNewId()
-	as.Movements = append(as.Movements, mvt)
+func (ms *MovementStore) AddNewMovement(mvt *Movement) {
+	mvt.Id = ms.GetNextNewId()
+	ms.Movements = append(ms.Movements, mvt)
 }
 
-func (as *MovementStore) DeleteMovement(mvt *Movement) {
-	for i, movement := range as.Movements {
+func (ms *MovementStore) DeleteMovement(mvt *Movement) {
+	for i, movement := range ms.Movements {
 		if movement.Id == mvt.Id {
-			as.Get("Movements").Call("splice", i, 1)
+			ms.Get("Movements").Call("splice", i, 1)
 			break
 		}
 	}
 }
 
-func (as *MovementStore) CallGetMovementsForStockId(vm *hvue.VM, stockId int, onSuccess func()) {
+func (ms *MovementStore) CallGetMovementsForStockId(vm *hvue.VM, stockId int, onSuccess func()) {
 	url := "/api/movements/stock/" + strconv.Itoa(stockId)
-	go as.callGetMovements(vm, url, onSuccess)
+	go ms.callGetMovements(vm, url, onSuccess)
 }
 
-func (as *MovementStore) CallGetMovements(vm *hvue.VM, onSuccess func()) {
+func (ms *MovementStore) CallGetMovements(vm *hvue.VM, onSuccess func()) {
 	url := "/api/movements"
-	go as.callGetMovements(vm, url, onSuccess)
+	go ms.callGetMovements(vm, url, onSuccess)
 }
 
-func (as *MovementStore) callGetMovements(vm *hvue.VM, url string, onSuccess func()) {
+func (ms *MovementStore) callGetMovements(vm *hvue.VM, url string, onSuccess func()) {
 	req := xhr.NewRequest("GET", url)
 	req.Timeout = tools.LongTimeOut
 	req.ResponseType = xhr.JSON
@@ -79,21 +79,21 @@ func (as *MovementStore) callGetMovements(vm *hvue.VM, url string, onSuccess fun
 		a := MovementFromJS(item)
 		loadedMovements = append(loadedMovements, a)
 	})
-	as.Movements = loadedMovements
-	as.Ref.SetReference()
+	ms.Movements = loadedMovements
+	ms.Ref.SetReference()
 	onSuccess()
 }
 
-func (as *MovementStore) CallUpdateMovements(vm *hvue.VM, onSuccess func()) {
-	go as.callUpdateMovements(vm, onSuccess)
+func (ms *MovementStore) CallUpdateMovements(vm *hvue.VM, onSuccess func()) {
+	go ms.callUpdateMovements(vm, onSuccess)
 }
 
-func (as *MovementStore) callUpdateMovements(vm *hvue.VM, onSuccess func()) {
+func (ms *MovementStore) callUpdateMovements(vm *hvue.VM, onSuccess func()) {
 	req := xhr.NewRequest("PUT", "/api/movements")
 	req.Timeout = tools.LongTimeOut
 	req.ResponseType = xhr.JSON
 
-	toUpdates := as.getUpdatedMovements()
+	toUpdates := ms.getUpdatedMovements()
 	nbToUpd := len(toUpdates)
 	if nbToUpd == 0 {
 		onSuccess()
@@ -110,7 +110,7 @@ func (as *MovementStore) callUpdateMovements(vm *hvue.VM, onSuccess func()) {
 		return
 	}
 
-	as.Ref.SetReference()
+	ms.Ref.SetReference()
 	msg := " mouvement de stock mis à jour"
 	if nbToUpd > 1 {
 		msg = " mouvements de stock mis à jour"
@@ -120,15 +120,15 @@ func (as *MovementStore) callUpdateMovements(vm *hvue.VM, onSuccess func()) {
 
 }
 
-func (as *MovementStore) getUpdatedMovements() []*Movement {
+func (ms *MovementStore) getUpdatedMovements() []*Movement {
 	refMovements := []*Movement{}
-	json.Parse(as.Ref.Reference).Call("forEach", func(acc *Movement) {
+	json.Parse(ms.Ref.Reference).Call("forEach", func(acc *Movement) {
 		refMovements = append(refMovements, acc)
 	})
 	refDict := makeDictMovements(refMovements)
 
 	updtMovements := []*Movement{}
-	for _, movement := range as.Movements {
+	for _, movement := range ms.Movements {
 		refAcc := refDict[movement.Id]
 		if !(refAcc != nil && json.Stringify(movement) == json.Stringify(refAcc)) {
 			// this movement has been updated ...

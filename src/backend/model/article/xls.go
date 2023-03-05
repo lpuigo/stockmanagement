@@ -79,16 +79,23 @@ func LoadArticlesFromXlsx(r io.Reader) ([]*Article, error) {
 		}
 		return row[col-1]
 	}
-	getFloat := func(title string) float64 {
+	getFloat := func(title string, def float64) float64 {
 		val := getCol(title)
 		if val == "" {
-			return 0
+			return def
 		}
 		res, err := strconv.ParseFloat(strings.Replace(val, ",", ".", -1), 64)
 		if err != nil {
 			return 0
 		}
 		return res
+	}
+	getColWithDefault := func(title, def string) string {
+		val := getCol(title)
+		if val == "" {
+			return def
+		}
+		return val
 	}
 
 	newID := 0
@@ -110,7 +117,8 @@ func LoadArticlesFromXlsx(r io.Reader) ([]*Article, error) {
 		if err != nil || idStr == "" {
 			id = getNextNewId()
 		}
-
+		invoiceUnit := getCol("InvoiceUnit")
+		retailUnit := getColWithDefault("RetailUnit", invoiceUnit)
 		art := &Article{
 			Id:                   id,
 			Category:             getCol("Category"),
@@ -120,12 +128,12 @@ func LoadArticlesFromXlsx(r io.Reader) ([]*Article, error) {
 			Manufacturer:         getCol("Manufacturer"),
 			PhotoId:              getCol("PhotoId"),
 			Location:             getCol("Location"),
-			InvoiceUnit:          getCol("InvoiceUnit"),
-			InvoiceUnitPrice:     getFloat("InvoiceUnitPrice"),
-			InvoiceUnitRetailQty: getFloat("InvoiceUnitRetailQty"),
-			RetailUnit:           getCol("RetailUnit"),
-			RetailUnitStockQty:   getFloat("RetailUnitStockQty"),
-			StockUnit:            getCol("StockUnit"),
+			InvoiceUnit:          invoiceUnit,
+			InvoiceUnitPrice:     getFloat("InvoiceUnitPrice", 0),
+			InvoiceUnitRetailQty: getFloat("InvoiceUnitRetailQty", 1),
+			RetailUnit:           retailUnit,
+			RetailUnitStockQty:   getFloat("RetailUnitStockQty", 1),
+			StockUnit:            getColWithDefault("StockUnit", retailUnit),
 
 			Status:    getCol("Status"),
 			TimeStamp: timestamp.TimeStamp{},

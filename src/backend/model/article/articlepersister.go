@@ -5,6 +5,7 @@ import (
 	"github.com/lpuig/batec/stockmanagement/src/backend/model/date"
 	"github.com/lpuig/batec/stockmanagement/src/backend/persist"
 	"io"
+	"sort"
 )
 
 type ArticlesPersister struct {
@@ -98,5 +99,12 @@ func (ap *ArticlesPersister) ExportName() string {
 }
 
 func (ap *ArticlesPersister) XLSExport(writer io.Writer) error {
-	return WriteArticlesToXlsx(writer, ap.GetArticles())
+	articles := ap.GetArticles()
+	sort.Slice(articles, func(i, j int) bool {
+		if articles[i].Manufacturer == articles[j].Manufacturer {
+			return articles[i].Designation < articles[j].Designation
+		}
+		return articles[i].Manufacturer < articles[j].Manufacturer
+	})
+	return WriteArticlesToXlsx(writer, articles)
 }

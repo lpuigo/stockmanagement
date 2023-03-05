@@ -16,11 +16,12 @@ import (
 type ArticleStore struct {
 	*js.Object
 
-	Articles []*Article         `js:"Articles"`
-	Loaded   bool               `js:"Loaded"`
-	GetById  func(int) *Article `js:"GetById"`
+	Articles     []*Article       `js:"Articles"`
+	Loaded       bool             `js:"Loaded"`
+	ArticleIndex map[int]*Article `js:"ArticleIndex"`
 
-	Ref *ref.Ref `js:"Ref"`
+	Ref       *ref.Ref `js:"Ref"`
+	NextNewId int      `js:"NextNewId"`
 }
 
 func NewArticleStore() *ArticleStore {
@@ -30,29 +31,68 @@ func NewArticleStore() *ArticleStore {
 	as.Ref = ref.NewRef(func() string {
 		return json.Stringify(as.Articles)
 	})
-	as.GetById = func(int) *Article { return nil }
+	as.NextNewId = 0
+	as.ArticleIndex = make(map[int]*Article)
 	return as
 }
 
-// GenGetById returns a GetByArticleId func, which, given an article Id, returns the pertaining article if exists, or null
-func (as *ArticleStore) GenGetById() func(id int) *Article {
+// IsDirty returns true if Loading in progress or Ref is dirty
+func (as *ArticleStore) IsDirty() bool {
+	return !(as.Loaded && !as.Ref.IsDirty())
+}
+
+func (as *ArticleStore) GetNextNewId() int {
+	as.NextNewId--
+	return as.NextNewId
+}
+
+// ArticleSliceFromJS returns a slice of Article extracted from the given JS Array of Article
+func ArticleSliceFromJS(jsArticleArray *js.Object) []*Article {
+	articles := []*Article{}
+	jsArticleArray.Call("forEach", func(item *js.Object) {
+		a := ArticleFromJS(item)
+		articles = append(articles, a)
+	})
+	return articles
+}
+
+// UpdateArticleIndex sets receiver's ArticleIndex
+func (as *ArticleStore) UpdateArticleIndex() {
 	dict := make(map[int]*Article)
 	for _, article := range as.Articles {
 		dict[article.Id] = article
 	}
-	return func(id int) *Article {
-		return dict[id]
-	}
+	as.ArticleIndex = dict
 }
 
 func (as *ArticleStore) SetArticles(arts []*Article) {
 	as.Articles = arts
-	as.GetById = as.GenGetById()
+	as.UpdateArticleIndex()
 	as.Ref.SetReference()
 	as.Loaded = true
 }
 
+// UpdateWith updates receiver Articles by checking given articles
+//
+// - updatedArticle with new or unknown id is added
+//
+// - updatedArticle with known Id will update already existing article
+func (as *ArticleStore) UpdateWith(updatedArticles []*Article) {
+	for _, updatedArticle := range updatedArticles {
+		matchingArticle, found := as.ArticleIndex[updatedArticle.Id]
+		if !found {
+			// unknown article ... add it
+			updatedArticle.Id = as.GetNextNewId()
+			as.Articles = append(as.Articles, updatedArticle)
+			continue
+		}
+		matchingArticle.Clone(updatedArticle)
+	}
+	as.UpdateArticleIndex()
+}
+
 func (as *ArticleStore) CallGetArticles(vm *hvue.VM, onSuccess func()) {
+	as.Loaded = false
 	go as.callGetArticles(vm, onSuccess)
 }
 
@@ -70,12 +110,7 @@ func (as *ArticleStore) callGetArticles(vm *hvue.VM, onSuccess func()) {
 		message.ErrorRequestMessage(vm, req)
 		return
 	}
-	loadedArticles := []*Article{}
-	req.Response.Call("forEach", func(item *js.Object) {
-		a := ArticleFromJS(item)
-		loadedArticles = append(loadedArticles, a)
-	})
-	as.SetArticles(loadedArticles)
+	as.SetArticles(ArticleSliceFromJS(req.Response))
 	onSuccess()
 }
 
@@ -92,6 +127,7 @@ func (as *ArticleStore) SetArticleStatusFromStock(stock *festock.Stock) {
 }
 
 func (as *ArticleStore) CallUpdateArticles(vm *hvue.VM, onSuccess func()) {
+	as.Loaded = false
 	go as.callUpdateArticles(vm, onSuccess)
 }
 
@@ -99,6 +135,10 @@ func (as *ArticleStore) callUpdateArticles(vm *hvue.VM, onSuccess func()) {
 	req := xhr.NewRequest("PUT", "/api/articles")
 	req.Timeout = tools.LongTimeOut
 	req.ResponseType = xhr.JSON
+
+	defer func() {
+		as.Loaded = true
+	}()
 
 	toUpdates := as.getUpdatedArticles()
 	nbToUpd := len(toUpdates)
@@ -153,4 +193,8 @@ func makeDictArticles(accs []*Article) map[int]*Article {
 
 func (as *ArticleStore) GetExportArticlestoXlsxURL() string {
 	return "/api/articles/export"
+}
+
+func (as *ArticleStore) GetImportArticlesFromXlsxURL() string {
+	return "/api/articles/import"
 }

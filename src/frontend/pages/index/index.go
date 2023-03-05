@@ -28,6 +28,7 @@ func main() {
 		hvue.MethodsOf(mpm),
 		hvue.Mounted(func(vm *hvue.VM) {
 			mpm := &MainPageModel{Object: vm.Object}
+			tools.BeforeUnloadConfirmation(mpm.PreventLeave)
 			mpm.GetUserSession()
 		}),
 		hvue.Computed("LoggedUser", func(vm *hvue.VM) interface{} {
@@ -80,6 +81,13 @@ func (m *MainPageModel) ClearModes() {
 
 func (m *MainPageModel) ClearSiteInfos() {
 	//m.WorksiteInfos = []*fm.WorksiteInfo{}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// tools Methods
+
+func (mpm *MainPageModel) PreventLeave() bool {
+	return mpm.User.HasPermissionValidate() && mpm.AvailableArticles.Ref.IsDirty()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////

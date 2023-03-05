@@ -77,6 +77,27 @@ func (a *Article) SearchString(filter string) string {
 	return res
 }
 
+func (a *Article) Clone(oa *Article) {
+	//a.Id = -1
+	a.Category = oa.Category
+	a.SubCategory = oa.SubCategory
+	a.Designation = oa.Designation
+	a.Ref = oa.Ref
+	a.Manufacturer = oa.Manufacturer
+	a.PhotoId = oa.PhotoId
+	a.Location = oa.Location
+	a.InvoiceUnit = oa.InvoiceUnit
+	a.InvoiceUnitPrice = oa.InvoiceUnitPrice
+	a.InvoiceUnitRetailQty = oa.InvoiceUnitRetailQty
+	a.RetailUnit = oa.RetailUnit
+	a.RetailUnitStockQty = oa.RetailUnitStockQty
+	a.StockUnit = oa.StockUnit
+	//a.Status = oa.Status
+	//a.CTime = ""
+	//a.UTime = ""
+	//a.DTime = ""
+}
+
 func GetFilterTypeValueLabel() []*elements.ValueLabel {
 	return []*elements.ValueLabel{
 		elements.NewValueLabel(articleconst.FilterValueAll, articleconst.FilterLabelAll),

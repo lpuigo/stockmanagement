@@ -39,14 +39,46 @@ const (
                 </el-input>
 			</el-col>
 			<el-col :span="3">
-				<el-button-group>
+				<div>	
 					<el-tooltip content="Export vers un fichier XLSx" placement="bottom" effect="light" open-delay="500">
 						<el-button type="warning" plain icon="fa-solid fa-file-import icon--big" @click="ExportToXLSx()" size="mini"></el-button>
 					</el-tooltip>
-					<el-tooltip content="Mise à jour depuis un fichier XLSx" placement="bottom" effect="light" open-delay="500">
-						<el-button type="warning" plain icon="fa-solid fa-file-export icon--big" @click="ImportFromXLSx()" size="mini"></el-button>
-					</el-tooltip>
-				</el-button-group>
+	
+					<el-popover v-model="VisibleImportArticlesCat" 
+							title="Import d'un catalogue d'articles:"
+							placement="bottom" width="360" 
+					>
+						<el-upload 
+								   :action="ImportFromXLSxURL()"
+								   drag
+								   style="width: 300px"
+								   :before-upload="ImportFromXLSxBeforeUpload"
+								   :on-success="ImportFromXLSxUploadSuccess"
+								   :on-error="ImportFromXLSxUploadError"
+						>
+							<i class="el-icon-upload"></i>
+							<div class="el-upload__text">Déposez un fichier XLSx ici ou <em>cliquez</em></div>
+						</el-upload>
+	
+						<el-tooltip slot="reference" content="Mise à jour depuis un fichier XLSx" placement="bottom" effect="light" open-delay="500">
+							<el-button type="warning" plain icon="fa-solid fa-file-export icon--big" @click="VisibleImportArticlesCat = !VisibleImportArticlesCat" size="mini"></el-button>
+						</el-tooltip>
+					</el-popover>
+				</div>
+			</el-col>
+			<el-col span=3>
+				<el-button-group>
+                    <el-tooltip v-if="user.Permissions['Validate']" content="Enregistrer les modifications"
+                                placement="bottom" effect="light" open-delay=500>
+                        <el-button type="warning" class="icon" icon="fas fa-cloud-upload-alt icon--big" @click="SaveArticlesCatalog"
+                                   :disabled="!IsDirty" size="mini"></el-button>
+                    </el-tooltip>
+                    <el-tooltip content="Raffraichir / Annuler les modifications" placement="bottom" effect="light"
+                                open-delay="500">
+                        <el-button type="warning" class="icon" icon="fas fa-undo-alt icon--big" @click="LoadArticlesCatalog"
+                                   :disabled="!value.Loaded" size="mini"></el-button>
+                    </el-tooltip>
+                </el-button-group>
 			</el-col>
 		</el-row>
 	</el-header>
@@ -75,10 +107,10 @@ func componentOptions() []hvue.ComponentOption {
 			return NewArticlesCatalogModel(vm)
 		}),
 		hvue.MethodsOf(&ArticlesCatalogModel{}),
-		//hvue.Computed("filteredArticles", func(vm *hvue.VM) interface{} {
-		//	atm := ArticlesCatalogModelFromJS(vm.Object)
-		//	return atm.GetFilteredArticles()
-		//}),
+		hvue.Computed("IsDirty", func(vm *hvue.VM) interface{} {
+			acm := ArticlesCatalogModelFromJS(vm.Object)
+			return acm.Articles.IsDirty()
+		}),
 	}
 }
 
@@ -93,6 +125,8 @@ type ArticlesCatalogModel struct {
 	Filter     string                  `js:"Filter"`
 	FilterType string                  `js:"FilterType"`
 
+	VisibleImportArticlesCat bool `js:"VisibleImportArticlesCat"`
+
 	VM *hvue.VM `js:"VM"`
 }
 
@@ -102,6 +136,7 @@ func NewArticlesCatalogModel(vm *hvue.VM) *ArticlesCatalogModel {
 	mum.User = feuser.NewUser()
 	mum.Filter = ""
 	mum.FilterType = ""
+	mum.VisibleImportArticlesCat = false
 
 	mum.VM = vm
 
@@ -117,26 +152,62 @@ func ArticlesCatalogModelFromJS(o *js.Object) *ArticlesCatalogModel {
 
 // Filter related methods
 
-func (mum *ArticlesCatalogModel) ApplyFilter(vm *hvue.VM) {
-	//mum = ArticlesCatalogModelFromJS(vm.Object)
+func (acm *ArticlesCatalogModel) ApplyFilter(vm *hvue.VM) {
+	//acm = ArticlesCatalogModelFromJS(vm.Object)
 }
 
-func (mum *ArticlesCatalogModel) GetFilterType(vm *hvue.VM) []*elements.ValueLabel {
+func (acm *ArticlesCatalogModel) GetFilterType(vm *hvue.VM) []*elements.ValueLabel {
 	return fearticle.GetFilterTypeValueLabel()
 }
 
-func (mum *ArticlesCatalogModel) ClearFilter(vm *hvue.VM) {
-	mum = ArticlesCatalogModelFromJS(vm.Object)
-	mum.FilterType = articleconst.FilterValueAll
-	mum.Filter = ""
+func (acm *ArticlesCatalogModel) ClearFilter(vm *hvue.VM) {
+	acm = ArticlesCatalogModelFromJS(vm.Object)
+	acm.FilterType = articleconst.FilterValueAll
+	acm.Filter = ""
 }
 
 // Action Methods
 
-func (mum *ArticlesCatalogModel) ExportToXLSx(vm *hvue.VM) {
-	tools.OpenUri("/api/articles/export")
+func (acm *ArticlesCatalogModel) ExportToXLSx(vm *hvue.VM) {
+	tools.OpenUri(acm.Articles.GetExportArticlestoXlsxURL())
 }
 
-func (mum *ArticlesCatalogModel) ImportFromXLSx(vm *hvue.VM) {
-	message.NotifyError(vm, "ImportFromXLSx", "method to be implemented")
+// Import Catalog from XLSx method
+func (acm *ArticlesCatalogModel) ImportFromXLSxURL(vm *hvue.VM) string {
+	return acm.Articles.GetImportArticlesFromXlsxURL()
+}
+
+func (acm *ArticlesCatalogModel) ImportFromXLSxBeforeUpload(vm *hvue.VM, file *js.Object) bool {
+	if file.Get("type").String() != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" {
+		message.NotifyError(vm, "Import d'un catalogue d'articles", "Le fichier '"+file.Get("name").String()+"' n'est pas un document Xlsx")
+		return false
+	}
+	return true
+}
+
+func (acm *ArticlesCatalogModel) ImportFromXLSxUploadError(vm *hvue.VM, err, file *js.Object) {
+	acm = ArticlesCatalogModelFromJS(vm.Object)
+	acm.VisibleImportArticlesCat = false
+	message.NotifyError(vm, "Import d'un catalogue d'articles", err.String())
+}
+
+func (acm *ArticlesCatalogModel) ImportFromXLSxUploadSuccess(vm *hvue.VM, response, file *js.Object) {
+	acm = ArticlesCatalogModelFromJS(vm.Object)
+	importedArticles := fearticle.ArticleSliceFromJS(response)
+	acm.Articles.UpdateWith(importedArticles)
+	acm.VisibleImportArticlesCat = false
+}
+
+// Save & Reload methods
+func (acm *ArticlesCatalogModel) SaveArticlesCatalog(vm *hvue.VM) {
+	acm = ArticlesCatalogModelFromJS(vm.Object)
+	onSavedArticle := func() {
+		acm.Articles.CallGetArticles(vm, func() {})
+	}
+	acm.Articles.CallUpdateArticles(vm, onSavedArticle)
+}
+
+func (acm *ArticlesCatalogModel) LoadArticlesCatalog(vm *hvue.VM) {
+	acm = ArticlesCatalogModelFromJS(vm.Object)
+	acm.Articles.CallGetArticles(vm, func() {})
 }
