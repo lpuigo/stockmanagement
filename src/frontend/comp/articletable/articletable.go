@@ -47,13 +47,13 @@ const (
 	></el-table-column>
 
 	<!--	Designation   -->
-	<el-table-column label="Désignation" prop="Designation" width="200px"
+	<el-table-column label="Désignation" prop="Designation"
 		:resizable="true" :show-overflow-tooltip=true
 		sortable 
 	></el-table-column>
 
 	<!--	Manufacturer   -->
-	<el-table-column label="Constructeur" prop="Manufacturer" width="150px"
+	<el-table-column label="Constructeur" prop="Manufacturer" width="250px"
 		:resizable="true" :show-overflow-tooltip=true
 		sortable :sort-by="['Manufacturer', 'Category', 'SubCategory', 'Designation']" 
 		:filters="FilterList('Manufacturer')" :filter-method="FilterHandler" filter-placement="bottom-end"
@@ -62,7 +62,7 @@ const (
 	<!--	Ref   -->
 	<el-table-column
 		:resizable="true" :show-overflow-tooltip=true 
-		prop="Ref" label="Référence" width="100px"
+		prop="Ref" label="Référence" width="150px"
 		sortable :sort-by="['Ref', 'Category', 'SubCategory', 'Designation']" 
 	></el-table-column>
 	
@@ -76,13 +76,27 @@ const (
 <!--		</template>-->
 <!--	</el-table-column>-->
 	
-	<!--	UnitStock   -->
+	<!--	RetailUnit   -->
 	<el-table-column
 		:resizable="true" :show-overflow-tooltip=true 
-		prop="UnitStock" label="Unité" width="100px" align="center"
-		sortable :sort-by="['UnitStock', 'Category', 'SubCategory', 'Designation']"  
-		:filters="FilterList('UnitStock')" :filter-method="FilterHandler" filter-placement="bottom-end"
-	></el-table-column>
+		prop="RetailUnit" label="Unité" width="200px"
+		sortable :sort-by="['RetailUnit', 'Category', 'SubCategory', 'Designation']"  
+		:filters="FilterList('RetailUnit')" :filter-method="FilterHandler" filter-placement="bottom-end"
+	>
+		<template slot-scope="scope">
+			<span>{{FormatRetailUnit(scope.row)}}</span>
+		</template>
+	</el-table-column>
+	
+	<!--	InvoiceUnitPrice   -->
+	<el-table-column
+		:resizable="true" :show-overflow-tooltip=true 
+		prop="InvoiceUnitPrice" label="Unité" width="200px"
+	>
+		<template slot-scope="scope">
+			<span>{{FormatRetailPrice(scope.row)}}</span>
+		</template>
+	</el-table-column>
 	
 </el-table>
 `
@@ -227,4 +241,25 @@ func (atm *ArticlesTableModel) GetFilteredArticles() []*fearticle.Article {
 		}
 	}
 	return accs
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Format Functions
+
+func (atm *ArticlesTableModel) FormatRetailUnit(vm *hvue.VM, art *fearticle.Article) string {
+	suffix := ""
+	if art.StockUnit != art.RetailUnit && art.RetailUnitStockQty != 1 {
+		suffix = " (" + strconv.FormatFloat(art.RetailUnitStockQty, 'f', 1, 64) + " par " + art.StockUnit + ")"
+	}
+	return art.RetailUnit + suffix
+}
+
+func (atm *ArticlesTableModel) FormatRetailPrice(vm *hvue.VM, art *fearticle.Article) string {
+	suffix := ""
+	unitPrice := art.InvoiceUnitPrice
+	if art.InvoiceUnit != art.RetailUnit || art.InvoiceUnitRetailQty != 1 {
+		unitPrice *= art.InvoiceUnitRetailQty
+		suffix = " (" + strconv.FormatFloat(art.InvoiceUnitPrice, 'f', 2, 64) + " €/" + art.InvoiceUnit + ")"
+	}
+	return strconv.FormatFloat(unitPrice, 'f', 2, 64) + " €/" + art.RetailUnit + suffix
 }
