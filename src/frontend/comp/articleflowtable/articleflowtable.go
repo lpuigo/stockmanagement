@@ -224,8 +224,8 @@ func (aftm *ArticleFlowTableModel) SortByDesignation(vm *hvue.VM, row *js.Object
 
 func (aftm *ArticleFlowTableModel) GetArticleCat(vm *hvue.VM, id int) string {
 	aftm = ArticleFlowTableModelFromJS(vm.Object)
-	art := aftm.StockArticles.GetById(id)
-	if art == nil {
+	art, found := aftm.StockArticles.ArticleIndex[id]
+	if !found {
 		return "article " + strconv.Itoa(id) + " inconnu"
 	}
 	return art.Category
@@ -233,8 +233,8 @@ func (aftm *ArticleFlowTableModel) GetArticleCat(vm *hvue.VM, id int) string {
 
 func (aftm *ArticleFlowTableModel) GetArticleSubCat(vm *hvue.VM, id int) string {
 	aftm = ArticleFlowTableModelFromJS(vm.Object)
-	art := aftm.StockArticles.GetById(id)
-	if art == nil {
+	art, found := aftm.StockArticles.ArticleIndex[id]
+	if !found {
 		return "article " + strconv.Itoa(id) + " inconnu"
 	}
 	return art.SubCategory
@@ -242,8 +242,8 @@ func (aftm *ArticleFlowTableModel) GetArticleSubCat(vm *hvue.VM, id int) string 
 
 func (aftm *ArticleFlowTableModel) GetArticleDesignation(vm *hvue.VM, id int) string {
 	aftm = ArticleFlowTableModelFromJS(vm.Object)
-	art := aftm.StockArticles.GetById(id)
-	if art == nil {
+	art, found := aftm.StockArticles.ArticleIndex[id]
+	if !found {
 		return "article " + strconv.Itoa(id) + " inconnu"
 	}
 	return art.Designation
