@@ -5,6 +5,7 @@ import (
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/ref"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements/message"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/fedate"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/json"
 	"github.com/lpuigo/hvue"
 	"honnef.co/go/js/xhr"
@@ -26,6 +27,15 @@ func NewWorksiteStore() *WorksiteStore {
 		return json.Stringify(as.Worksites)
 	})
 	return as
+}
+
+func (ws *WorksiteStore) GetWorksiteById(id int) *Worksite {
+	for _, worksite := range ws.Worksites {
+		if worksite.Id == id {
+			return worksite
+		}
+	}
+	return NewWorksite()
 }
 
 func (ws *WorksiteStore) CallGetWorksites(vm *hvue.VM, onSuccess func()) {
@@ -114,6 +124,18 @@ func makeDictWorksites(accs []*Worksite) map[int]*Worksite {
 	res := make(map[int]*Worksite)
 	for _, acc := range accs {
 		res[acc.Id] = acc
+	}
+	return res
+}
+
+func (ws *WorksiteStore) GetActiveWorksites() []*Worksite {
+	today := fedate.TodayAfter(0)
+	res := []*Worksite{}
+	for _, worksite := range ws.Worksites {
+		if !worksite.IsActiveOn(today) {
+			continue
+		}
+		res = append(res, worksite)
 	}
 	return res
 }

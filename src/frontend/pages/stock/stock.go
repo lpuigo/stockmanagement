@@ -8,6 +8,7 @@ import (
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festock"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feworksite"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements/message"
 	"github.com/lpuigo/hvue"
@@ -64,6 +65,7 @@ type MainPageModel struct {
 	StockStore        *festock.StockStore       `js:"StockStore"`
 	Stock             *festock.Stock            `js:"Stock"`
 	MovementStore     *femovement.MovementStore `js:"MovementStore"`
+	Worksites         *feworksite.WorksiteStore `js:"Worksites"`
 	SaveInProgress    bool                      `js:"SaveInProgress"`
 
 	ActiveMode string `js:"ActiveMode"`
@@ -80,6 +82,7 @@ func NewMainPageModel() *MainPageModel {
 	m.StockStore = festock.NewStockStore()
 	m.Stock = festock.NewStock()
 	m.MovementStore = femovement.NewMovementStore()
+	m.Worksites = feworksite.NewWorksiteStore()
 	m.SaveInProgress = false
 
 	m.ActiveMode = "article"
@@ -113,6 +116,9 @@ func (m *MainPageModel) LoadStockWithId(id int) {
 		m.LoadMovementWithStockId(id)
 	}
 	m.StockStore.CallGetStockById(m.VM, id, onStockLoaded)
+
+	onWorkistesLoaded := func() {}
+	m.Worksites.CallGetWorksites(m.VM, onWorkistesLoaded)
 }
 
 func (m *MainPageModel) LoadMovementWithStockId(id int) {

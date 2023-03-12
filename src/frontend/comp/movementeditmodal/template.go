@@ -42,7 +42,17 @@ const template string = `<el-dialog
 					<!--	Date  -->
 					<el-row :gutter="5" type="flex" align="middle" class="spaced">
 						<el-col :span="2" class="align-right">Chantier:</el-col>
-						<el-col :span="10">chantier {{current_movement.WorksiteId}}</el-col>
+						<el-col :span="10">
+							<el-select v-model="current_movement.WorksiteId"  
+								filterable size="mini" style="width: 100%"
+								@change="UpdateWorksite">
+								<el-option
+									v-for="item in GetActiveWorksites()" :key="item.value"
+									:value="item.value"
+									:label="item.label"
+								></el-option>
+							</el-select>
+						</el-col>
 						<el-col :span="2" class="align-right">Responsable:</el-col>
 						<el-col :span="10">
 							<el-input v-model="current_movement.Responsible" size="mini""></el-input>

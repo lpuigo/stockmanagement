@@ -8,6 +8,8 @@ import (
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festock"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feworksite"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements"
 	"github.com/lpuigo/hvue"
 )
 
@@ -16,8 +18,9 @@ type MovementEditModalModel struct {
 
 	EditMode string `js:"EditMode"`
 
-	Articles *fearticle.ArticleStore `js:"articles"`
-	Stock    *festock.Stock          `js:"stock"`
+	Articles  *fearticle.ArticleStore   `js:"articles"`
+	Stock     *festock.Stock            `js:"stock"`
+	Worksites *feworksite.WorksiteStore `js:"worksites"`
 
 	StockArticles *fearticle.ArticleStore `js:"StockArticles"`
 
@@ -32,6 +35,7 @@ func NewMovementEditModalModel(vm *hvue.VM) *MovementEditModalModel {
 	aemm := &MovementEditModalModel{MovementModalModel: NewMovementModalModel(vm)}
 	aemm.EditMode = modeMovement
 	aemm.Articles = fearticle.NewArticleStore()
+	aemm.Worksites = feworksite.NewWorksiteStore()
 	aemm.Stock = festock.NewStock()
 	aemm.StockArticles = fearticle.NewArticleStore()
 	aemm.IsNewMovement = false
@@ -53,7 +57,7 @@ func componentOptions() []hvue.ComponentOption {
 	return []hvue.ComponentOption{
 		hvue.Template(template),
 		articleflowtable.RegisterComponent(),
-		hvue.Props("stock", "articles"),
+		hvue.Props("stock", "articles", "worksites"),
 		hvue.DataFunc(func(vm *hvue.VM) interface{} {
 			return NewMovementEditModalModel(vm)
 		}),
@@ -103,6 +107,20 @@ func (memm *MovementEditModalModel) FormatType(t string) string {
 
 func (memm *MovementEditModalModel) UpdateDate(vm *hvue.VM) {
 	//memm = MovementEditModalModelFromJS(vm.Object)
+}
+
+func (memm *MovementEditModalModel) GetActiveWorksites(vm *hvue.VM) []*elements.IntValueLabel {
+	memm = MovementEditModalModelFromJS(vm.Object)
+	ivls := []*elements.IntValueLabel{}
+	for _, ws := range memm.Worksites.GetActiveWorksites() {
+		ivls = append(ivls, elements.NewIntValueLabel(ws.Id, ws.GetLabel()))
+	}
+	return ivls
+}
+
+func (memm *MovementEditModalModel) UpdateWorksite(vm *hvue.VM, wsId int) {
+	memm = MovementEditModalModelFromJS(vm.Object)
+	memm.CurrentMovement.Responsible = memm.Worksites.GetWorksiteById(wsId).Responsible
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

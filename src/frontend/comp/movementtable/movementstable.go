@@ -2,10 +2,12 @@ package movementtable
 
 import (
 	"github.com/gopherjs/gopherjs/js"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/fearticle"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement/movementconst"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festatus"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feworksite"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/fedate"
@@ -44,7 +46,7 @@ const (
 	</el-table-column>
 
 	<!--	Type   -->
-	<el-table-column label="Type" prop="Type" width="140px"
+	<el-table-column label="Type" prop="Type" width="160px"
 		:resizable="true" :show-overflow-tooltip=true
 		sortable :sort-by="['Type', 'Date']"
 		:filters="FilterList('Type')" :filter-method="FilterHandler" filter-placement="bottom-end"
@@ -58,21 +60,21 @@ const (
 	</el-table-column>
 
 	<!--	Actor   -->
-	<el-table-column label="Acteur" prop="Actor" width="140px"
+	<el-table-column label="Acteur" prop="Actor" width="200px"
 		:resizable="true" :show-overflow-tooltip=true
 		sortable :sort-by="['Actor', 'Date']"
 		:filters="FilterList('Actor')" :filter-method="FilterHandler" filter-placement="bottom-end"
 	></el-table-column>
 
 	<!--	Responsible   -->
-	<el-table-column label="Responsable" prop="Responsible" width="140px"
+	<el-table-column label="Responsable" prop="Responsible" width="200px"
 		:resizable="true" :show-overflow-tooltip=true
 		sortable :sort-by="['Responsible', 'Date']"
 		:filters="FilterList('Responsible')" :filter-method="FilterHandler" filter-placement="bottom-end"
 	></el-table-column>
 
 	<!--	Worksite   -->
-	<el-table-column label="Chantier" prop="WorksiteId" width="140px"
+	<el-table-column label="Chantier" prop="WorksiteId" width="300px"
 		:resizable="true" :show-overflow-tooltip=true
 		sortable :sort-by="['WorksiteId', 'Date']" 
 		:filters="FilterList('WorksiteId')" :filter-method="FilterHandler" filter-placement="bottom-end"
@@ -93,11 +95,22 @@ const (
 	</el-table-column>
 
 	<!--	ArticleFlows   -->
-	<el-table-column label="Articles" width="150px"
+	<el-table-column label="Articles" width="200px"
 		:resizable="true" :show-overflow-tooltip=true
 	>
 		<template slot-scope="scope">
-			<span>{{scope.row.ArticleFlows.length}} article(s)</span>
+			<div class="header-menu-container on-hover">
+				<span>{{scope.row.ArticleFlows.length}} article(s)</span>
+
+				<el-popover placement="left" width="400" trigger="hover" :open-delay=250
+					title="Liste des Articles"
+				>
+					<div v-for="(articleInfo, index) in GetArticlesInfoFor(scope.row)" :key="articleInfo" style="font-size: 0.85em">
+						{{index+1}} - <span>{{articleInfo}}</span>
+					</div>                        
+					<i slot="reference" class="fas fa-info-circle icon--right show"></i>
+				</el-popover>				
+			</div>
 		</template>
 	</el-table-column>
 
@@ -113,7 +126,7 @@ func RegisterComponent() hvue.ComponentOption {
 func componentOptions() []hvue.ComponentOption {
 	return []hvue.ComponentOption{
 		hvue.Template(template),
-		hvue.Props("value", "user", "filter", "filtertype"),
+		hvue.Props("value", "user", "articles", "worksites", "filter", "filtertype"),
 		hvue.DataFunc(func(vm *hvue.VM) interface{} {
 			return NewMovementsTableModel(vm)
 		}),
@@ -133,6 +146,8 @@ type MovementsTableModel struct {
 
 	Movements  *femovement.MovementStore `js:"value"`
 	User       *feuser.User              `js:"user"`
+	Articles   *fearticle.ArticleStore   `js:"articles"`
+	Worksites  *feworksite.WorksiteStore `js:"worksites"`
 	Filter     string                    `js:"filter"`
 	FilterType string                    `js:"filtertype"`
 
@@ -144,6 +159,8 @@ func NewMovementsTableModel(vm *hvue.VM) *MovementsTableModel {
 	atm.VM = vm
 	atm.Movements = femovement.NewMovementStore()
 	atm.User = feuser.NewUser()
+	atm.Articles = fearticle.NewArticleStore()
+	atm.Worksites = feworksite.NewWorksiteStore()
 	atm.Filter = ""
 	atm.FilterType = ""
 
@@ -178,9 +195,9 @@ func (mtm *MovementsTableModel) FormatDate(d string) string {
 	return fedate.DateString(d)
 }
 
-func (mtm *MovementsTableModel) FormatWorksite(wsId int) string {
-	// TODO lookup for worsite name
-	return "Chantier " + strconv.Itoa(wsId)
+func (mtm *MovementsTableModel) FormatWorksite(vm *hvue.VM, wsId int) string {
+	mtm = MovementsTableModelFromJS(vm.Object)
+	return mtm.Worksites.GetWorksiteById(wsId).GetLabel()
 }
 
 func (mtm *MovementsTableModel) FormatType(m *femovement.Movement) string {
@@ -189,6 +206,22 @@ func (mtm *MovementsTableModel) FormatType(m *femovement.Movement) string {
 
 func (mtm *MovementsTableModel) FormatStatus(m *femovement.Movement) string {
 	return m.GetCurrentStatus().GetLabel()
+}
+
+func (mtm *MovementsTableModel) GetArticlesInfoFor(vm *hvue.VM, m *femovement.Movement) []string {
+	mtm = MovementsTableModelFromJS(vm.Object)
+	res := []string{}
+	for _, articleFlow := range m.ArticleFlows {
+		var artDesc string
+		art, found := mtm.Articles.ArticleIndex[articleFlow.ArtId]
+		if found {
+			artDesc = art.RetailUnit + " de " + art.Designation
+		} else {
+			artDesc = "Article id " + strconv.Itoa(articleFlow.ArtId) + " inconnu"
+		}
+		res = append(res, strconv.Itoa(articleFlow.Qty)+" x "+artDesc)
+	}
+	return res
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -228,6 +261,13 @@ func (mtm *MovementsTableModel) FilterList(vm *hvue.VM, prop string) []*elements
 			return m.GetCurrentStatus().Status
 		}
 		getLabel = func(v string) string { return festatus.GetLabel(v) }
+	case "WorksiteId":
+		getValue = func(m *femovement.Movement) string {
+			return mtm.Worksites.GetWorksiteById(m.WorksiteId).GetLabel()
+		}
+		getLabel = func(v string) string {
+			return v
+		}
 	default:
 		getValue = func(m *femovement.Movement) string {
 			return m.Get(prop).String()
