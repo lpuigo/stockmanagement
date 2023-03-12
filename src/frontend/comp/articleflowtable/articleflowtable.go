@@ -36,7 +36,7 @@ const (
 					v-model="PickArticleVisible"
 					placement="right"
 					title="Ajout d'un article"
-					width="80vw"
+					width="1200"
 					@show="ResetPickedArticle()"
 					trigger="click">
 				<el-container style="height: 60vh">
@@ -99,12 +99,13 @@ const (
 	</el-table-column>
 
 	<!--	Quantities   -->
-	<el-table-column label="Quantité" prop="Qty" width="210px"
+	<el-table-column label="Quantité" prop="Qty" width="300px"
 		:resizable="true" :show-overflow-tooltip=true
 		sortable :sort-by="['Qty']"
 	>
 		<template slot-scope="scope">
-			<el-input-number v-model="scope.row.Qty" :min="1"></el-input-number>
+			<el-input-number v-model="scope.row.Qty" :min="1" size="mini"></el-input-number>
+			<span> x {{GetArticleRetailUnit(scope.row.ArtId)}}</span>
 		</template>
 	</el-table-column>
 </el-table>
@@ -247,6 +248,15 @@ func (aftm *ArticleFlowTableModel) GetArticleDesignation(vm *hvue.VM, id int) st
 		return "article " + strconv.Itoa(id) + " inconnu"
 	}
 	return art.Designation
+}
+
+func (aftm *ArticleFlowTableModel) GetArticleRetailUnit(vm *hvue.VM, id int) string {
+	aftm = ArticleFlowTableModelFromJS(vm.Object)
+	art, found := aftm.StockArticles.ArticleIndex[id]
+	if !found {
+		return ""
+	}
+	return art.RetailUnit
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

@@ -41,7 +41,7 @@ const (
 	></el-table-column>
 
 	<!--	Designation   -->
-	<el-table-column label="Désignation" prop="Designation" width="200px"
+	<el-table-column label="Désignation" prop="Designation"
 		:resizable="true" :show-overflow-tooltip=true
 		sortable 
 	></el-table-column>
@@ -53,12 +53,22 @@ const (
 		:filters="FilterList('Manufacturer')" :filter-method="FilterHandler" filter-placement="bottom-end"
 	></el-table-column>
 
-	<!--	Ref   -->
+	<!--	RetailUnit   -->
 	<el-table-column
 		:resizable="true" :show-overflow-tooltip=true 
-		prop="Ref" label="Référence" width="100px"
-		sortable :sort-by="['Ref', 'Category', 'SubCategory', 'Designation']" 
+		prop="RetailUnit" label="Détail" width="150px"
 	></el-table-column>
+	
+	<!--	StockUnit   -->
+	<el-table-column
+		:resizable="true" :show-overflow-tooltip=true 
+		prop="StockUnit" label="Gros" width="150px"
+	>
+		<template slot-scope="scope">
+			<p class="article-unit">{{scope.row.StockUnit}}</p>
+			<p class="article-unit light">{{GetStockRetailQty(scope.row)}}</p>
+		</template>
+	</el-table-column>
 	
 	<!--	PhotoId  -->
 <!--	<el-table-column-->
@@ -140,6 +150,10 @@ func (atm *ArticlePickTableModel) HandleDoubleClickedRow(vm *hvue.VM, ar *fearti
 func (atm *ArticlePickTableModel) HandleSelectionChange(vm *hvue.VM, selArt *fearticle.Article) {
 	atm = ArticlePickTableModelFromJS(vm.Object)
 	atm.VM.Emit("picked-article", selArt)
+}
+
+func (atm *ArticlePickTableModel) GetStockRetailQty(vm *hvue.VM, art *fearticle.Article) string {
+	return "( " + strconv.FormatFloat(art.RetailUnitStockQty, 'f', 1, 64) + " x " + art.RetailUnit + " )"
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

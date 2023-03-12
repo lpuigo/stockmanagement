@@ -114,6 +114,8 @@ func GetTypeLabel(t string) string {
 		return movementconst.TypeLabelInventory
 	case movementconst.TypeValueSupply:
 		return movementconst.TypeLabelSupply
+	case movementconst.TypeValueReturn:
+		return movementconst.TypeLabelReturn
 	case movementconst.TypeValueWithdrawal:
 		return movementconst.TypeLabelWithdrawal
 	default:

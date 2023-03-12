@@ -9,6 +9,7 @@ import (
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement/movementconst"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festock"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feworksite"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements"
 	"github.com/lpuigo/hvue"
@@ -22,25 +23,32 @@ const (
 			ref="MovementEditModal"
 			:stock="stock"
 			:articles="articles"
+			:worksites="worksites"
 			@new-movement="StoreNewMovement"
 	></movement-edit-modal>
 
 	<el-header style="height: auto; padding: 0 15px; margin-bottom: 15px">
 		<el-row :gutter="10" type="flex" align="middle">
-			<el-col :span="10">
+			<el-col span=4>
+				<h2><i class="fa-solid fa-truck-ramp-box icon--left"></i>Mouvements de stock</h2>
+			</el-col>
+			<el-col span=5>
 				<el-button-group>
-					<el-tooltip content="Retrait" placement="bottom" effect="light" open-delay="500">
-						<el-button type="warning" plain icon="fa-solid fa-right-from-bracket icon--big" @click="AddMovement('withdrawal')"></el-button>
+					<el-tooltip content="Déclarer un Retrait" placement="bottom" effect="light" open-delay="500">
+						<el-button type="warning" plain icon="fa-solid fa-person-walking-arrow-right icon--big" @click="AddMovement('withdrawal')"></el-button>
 					</el-tooltip>
-					<el-tooltip content="Approvisionnement" placement="bottom" effect="light" open-delay="500">
-						<el-button type="warning" plain icon="fa-solid fa-right-to-bracket icon--big" @click="AddMovement('supply')"></el-button>
+					<el-tooltip content="Déclarer un Retour" placement="bottom" effect="light" open-delay="500">
+						<el-button type="warning" plain icon="fa-solid fa-person-walking-arrow-loop-left icon--big" @click="AddMovement('return')"></el-button>
 					</el-tooltip>
-					<el-tooltip content="Inventaire" placement="bottom" effect="light" open-delay="500">
+					<el-tooltip content="Déclarer un Approvisionnement" placement="bottom" effect="light" open-delay="500">
+						<el-button type="warning" plain icon="fa-solid fa-truck-arrow-right icon--big" @click="AddMovement('supply')"></el-button>
+					</el-tooltip>
+					<el-tooltip content="Déclarer un Inventaire" placement="bottom" effect="light" open-delay="500">
 						<el-button type="warning" plain icon="fa-solid fa-list-check icon--big" @click="AddMovement('inventory')"></el-button>
 					</el-tooltip>
 				</el-button-group>
 			</el-col>
-			<el-col :span="10">
+			<el-col span=10>
                 <el-input v-model="filter" size="mini" style="width: 25vw; min-width: 130px"
                           @input="ApplyFilter">
                     <el-select v-model="filtertype"
@@ -63,6 +71,8 @@ const (
 	<el-main style="padding: 0 15px">
 		<movements-table
 				v-model="value"
+				:articles="articles"
+				:worksites="worksites"
 				:user="user"
 				:filter="filter" :filtertype="filtertype"
 				@edit-movement="EditMovement"
@@ -81,7 +91,7 @@ func componentOptions() []hvue.ComponentOption {
 		hvue.Template(template),
 		movementeditmodal.RegisterComponent(),
 		movementtable.RegisterComponent(),
-		hvue.Props("value", "stock", "articles", "user"),
+		hvue.Props("value", "stock", "articles", "worksites", "user"),
 		hvue.DataFunc(func(vm *hvue.VM) interface{} {
 			return NewMovementsUpdateModel(vm)
 		}),
@@ -102,6 +112,7 @@ type MovementsUpdateModel struct {
 	StockMovements *femovement.MovementStore `js:"value"`
 	Stock          *festock.Stock            `js:"stock"`
 	Articles       *fearticle.ArticleStore   `js:"articles"`
+	Worksites      *feworksite.WorksiteStore `js:"worksites"`
 	User           *feuser.User              `js:"user"`
 	Filter         string                    `js:"filter"`
 	FilterType     string                    `js:"filtertype"`
@@ -114,6 +125,7 @@ func NewMovementsUpdateModel(vm *hvue.VM) *MovementsUpdateModel {
 	mum.StockMovements = femovement.NewMovementStore()
 	mum.Stock = festock.NewStock()
 	mum.Articles = fearticle.NewArticleStore()
+	mum.Worksites = feworksite.NewWorksiteStore()
 	mum.User = feuser.NewUser()
 	mum.Filter = ""
 	mum.FilterType = ""
