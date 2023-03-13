@@ -40,12 +40,17 @@
                     <el-tooltip content="Mouvements de stock" placement="bottom" effect="light" open-delay="500">
                         <el-radio-button label="movement"><i class="fa-solid fa-dolly icon--big"></i></el-radio-button>
                     </el-tooltip>
-                    <el-tooltip content="Liste d'Articles" placement="bottom" effect="light" open-delay="500">
-                        <el-radio-button label="article"><i class="fa-solid fa-boxes-packing icon--big"></i>
+                    <el-tooltip content="Etat du Stock" placement="bottom" effect="light" open-delay="500">
+                        <el-radio-button label="article"><i class="fa-solid fa-chart-line icon--big"></i>
+                        </el-radio-button>
+                    </el-tooltip>
+                    <el-tooltip content="Catalogue Articles en stock" placement="bottom" effect="light"
+                                open-delay="500">
+                        <el-radio-button label="stock"><i class="fa-solid fa-cubes-stacked icon--big"></i>
                         </el-radio-button>
                     </el-tooltip>
                     <el-tooltip content="debug Stocks" placement="bottom" effect="light" open-delay="500">
-                        <el-radio-button label="stock"><i class="fa-solid fa-warehouse icon--big"></i></el-radio-button>
+                        <el-radio-button label="debug"><i class="fa-solid fa-bug icon--big"></i></el-radio-button>
                     </el-tooltip>
                 </el-radio-group>
 
@@ -71,6 +76,7 @@
                         :user="User"
                 ></movements-update>
             </div>
+
             <div v-if="ActiveMode == 'article'" style="height: 100%">
                 <stock-articles-table
                         v-model="Stock"
@@ -81,6 +87,15 @@
             </div>
 
             <div v-if="ActiveMode == 'stock'" style="height: 100%">
+                <stock-catalog-table
+                        v-model="Stock"
+                        :articles="AvailableArticles"
+                        :user="User"
+                        :filter="Filter" :filtertype="FilterType"
+                ></stock-catalog-table>
+            </div>
+
+            <div v-if="ActiveMode == 'debug'" style="height: 100%">
                 <div>Object Stock (debug)</div>
                 <pre>{{Stock}}</pre>
             </div>

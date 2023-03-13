@@ -1,4 +1,4 @@
-package stockarticletable
+package stockcatalogtable
 
 import (
 	"github.com/gopherjs/gopherjs/js"
@@ -20,9 +20,10 @@ const (
 	<el-header style="height: auto; padding: 0 15px; margin-bottom: 15px">
 		<el-row :gutter="10" type="flex" align="middle">
 			<el-col :span="5">
-				<h2><i class="fa-solid fa-chart-line icon--left"></i>Etat du Stock</h2>
+				<h2><i class="fa-solid fa-cubes-stacked icon--left"></i>Catalogue d'Articles en Stock</h2>
 			</el-col>
 			<el-col :span="5">
+				<el-button type="primary" size="mini" @click="ToggleSelection" :disabled="SelectedArticles.length == 0">Ajout/Retrait</el-button>
 			</el-col>
 			<el-col :span="10">
                 <el-input v-model="filter" size="mini" style="width: 25vw; min-width: 130px"
@@ -49,9 +50,16 @@ const (
 				:data="filteredArticles"
 				:default-sort = "{prop: 'Category', order: 'ascending'}"        
 				:row-class-name="TableRowClassName" height="100%" size="mini"
+				@selection-change="HandleSelectionChange"
 		>
 		<!--		:default-sort = "{prop: 'Stay.EndDate', order: 'descending'}"-->
 			
+			<!--	Selection   -->
+			<el-table-column
+			  type="selection"
+			  width="55"
+			></el-table-column>
+				
 			<!--	Index   -->
 			<el-table-column
 				label="N°" width="40px"
@@ -63,7 +71,7 @@ const (
 			<el-table-column label="Disponibilité" prop="Status" width="120px"
 				:resizable="true" :show-overflow-tooltip=true
 				sortable :sort-by="['Status', 'Category', 'SubCategory', 'Designation']"
-				:filters="FilterList('Status')" :filter-method="FilterHandler" filter-placement="bottom-end"
+				:filters="FilterList('Status')" :filter-method="FilterHandler" filter-placement="bottom-end" :filtered-value="FilteredStatusValue()"
 			>
 				<template slot-scope="scope">
 					<span>{{FormatStatus(scope.row)}}</span>
@@ -142,7 +150,7 @@ const (
 )
 
 func RegisterComponent() hvue.ComponentOption {
-	return hvue.Component("stock-articles-table", componentOptions()...)
+	return hvue.Component("stock-catalog-table", componentOptions()...)
 }
 
 func componentOptions() []hvue.ComponentOption {
@@ -150,11 +158,11 @@ func componentOptions() []hvue.ComponentOption {
 		hvue.Template(template),
 		hvue.Props("value", "user", "articles", "filter", "filtertype"),
 		hvue.DataFunc(func(vm *hvue.VM) interface{} {
-			return NewStockArticlesTableModel(vm)
+			return NewStockCatalogTableModel(vm)
 		}),
-		hvue.MethodsOf(&StockArticlesTableModel{}),
+		hvue.MethodsOf(&StockCatalogTableModel{}),
 		hvue.Computed("filteredArticles", func(vm *hvue.VM) interface{} {
-			satm := StockArticlesTableModelFromJS(vm.Object)
+			satm := StockCatalogTableModelFromJS(vm.Object)
 			return satm.GetFilteredArticles()
 		}),
 	}
@@ -163,12 +171,12 @@ func componentOptions() []hvue.ComponentOption {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Comp Model
 
-type StockArticlesTableModel struct {
+type StockCatalogTableModel struct {
 	*js.Object
 
 	Stock            *festock.Stock          `js:"value"`
 	Articles         *fearticle.ArticleStore `js:"articles"`
-	FilteredArticles []*fearticle.Article    `js:"FilteredArticles"`
+	SelectedArticles []*fearticle.Article    `js:"SelectedArticles"`
 	User             *feuser.User            `js:"user"`
 	Filter           string                  `js:"filter"`
 	FilterType       string                  `js:"filtertype"`
@@ -176,20 +184,20 @@ type StockArticlesTableModel struct {
 	VM *hvue.VM `js:"VM"`
 }
 
-func NewStockArticlesTableModel(vm *hvue.VM) *StockArticlesTableModel {
-	satm := &StockArticlesTableModel{Object: tools.O()}
-	satm.VM = vm
-	satm.Articles = fearticle.NewArticleStore()
-	satm.FilteredArticles = []*fearticle.Article{}
-	satm.User = feuser.NewUser()
-	satm.Filter = ""
-	satm.FilterType = ""
+func NewStockCatalogTableModel(vm *hvue.VM) *StockCatalogTableModel {
+	sctm := &StockCatalogTableModel{Object: tools.O()}
+	sctm.VM = vm
+	sctm.Articles = fearticle.NewArticleStore()
+	sctm.SelectedArticles = []*fearticle.Article{}
+	sctm.User = feuser.NewUser()
+	sctm.Filter = ""
+	sctm.FilterType = ""
 
-	return satm
+	return sctm
 }
 
-func StockArticlesTableModelFromJS(o *js.Object) *StockArticlesTableModel {
-	return &StockArticlesTableModel{Object: o}
+func StockCatalogTableModelFromJS(o *js.Object) *StockCatalogTableModel {
+	return &StockCatalogTableModel{Object: o}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -197,35 +205,59 @@ func StockArticlesTableModelFromJS(o *js.Object) *StockArticlesTableModel {
 
 // Filter related methods
 
-func (satm *StockArticlesTableModel) ApplyFilter(vm *hvue.VM) {
-	//satm = StockArticlesTableModelFromJS(vm.Object)
+func (satm *StockCatalogTableModel) ApplyFilter(vm *hvue.VM) {
+	//satm = StockCatalogTableModelFromJS(vm.Object)
 }
 
-func (satm *StockArticlesTableModel) GetFilterType(vm *hvue.VM) []*elements.ValueLabel {
+func (satm *StockCatalogTableModel) GetFilterType(vm *hvue.VM) []*elements.ValueLabel {
 	return fearticle.GetFilterTypeValueLabel()
 }
 
-func (satm *StockArticlesTableModel) ClearFilter(vm *hvue.VM) {
-	satm = StockArticlesTableModelFromJS(vm.Object)
+func (satm *StockCatalogTableModel) ClearFilter(vm *hvue.VM) {
+	satm = StockCatalogTableModelFromJS(vm.Object)
 	satm.FilterType = articleconst.FilterValueAll
 	satm.Filter = ""
 }
 
 // Table related methods
 
-func (satm *StockArticlesTableModel) TableRowClassName(vm *hvue.VM, rowInfo *js.Object) string {
-	satm = StockArticlesTableModelFromJS(vm.Object)
+func (satm *StockCatalogTableModel) TableRowClassName(vm *hvue.VM, rowInfo *js.Object) string {
+	satm = StockCatalogTableModelFromJS(vm.Object)
 	ar := fearticle.ArticleFromJS(rowInfo.Get("row"))
 	return fearticle.GetStatusClass(ar.Status)
 }
 
+func (satm *StockCatalogTableModel) HandleSelectionChange(vm *hvue.VM, selArts *js.Object) {
+	satm = StockCatalogTableModelFromJS(vm.Object)
+	selectedArticles := []*fearticle.Article{}
+	selArts.Call("forEach", func(art *fearticle.Article) {
+		selectedArticles = append(selectedArticles, art)
+	})
+	satm.SelectedArticles = selectedArticles
+}
+
+func (satm *StockCatalogTableModel) ToggleSelection(vm *hvue.VM) {
+	satm = StockCatalogTableModelFromJS(vm.Object)
+	isArticleInStockById := satm.Stock.GetArticleAvailability()
+	for _, article := range satm.SelectedArticles {
+		article.ToggleInStock()
+		switch article.Status {
+		case articleconst.StatusValueOutOfStock, articleconst.StatusValueAvailable:
+			isArticleInStockById[article.Id] = true
+		case articleconst.StatusValueUnavailable:
+			delete(isArticleInStockById, article.Id)
+		}
+	}
+	satm.Stock.UpdateArticleAvailability(isArticleInStockById)
+}
+
 // Table column format related methods
 
-func (satm *StockArticlesTableModel) FormatStatus(ar *fearticle.Article) string {
+func (satm *StockCatalogTableModel) FormatStatus(ar *fearticle.Article) string {
 	return fearticle.GetStatusLabel(ar.Status)
 }
 
-func (satm *StockArticlesTableModel) GetStockRetailQty(vm *hvue.VM, ar *fearticle.Article) string {
+func (satm *StockCatalogTableModel) GetStockRetailQty(vm *hvue.VM, ar *fearticle.Article) string {
 	return "( " + strconv.FormatFloat(ar.RetailUnitStockQty, 'f', 1, 64) + " x " + ar.RetailUnit + " )"
 }
 
@@ -233,11 +265,11 @@ func (satm *StockArticlesTableModel) GetStockRetailQty(vm *hvue.VM, ar *fearticl
 // Column Filtering Related Methods
 
 // FilteredStatusValue returns pre filtered values for Status
-func (satm *StockArticlesTableModel) FilteredStatusValue() []string {
+func (satm *StockCatalogTableModel) FilteredStatusValue() []string {
 	return []string{articleconst.StatusLabelAvailable, articleconst.StatusLabelOutOfStock}
 }
 
-func (satm *StockArticlesTableModel) FilterHandler(vm *hvue.VM, value string, p *js.Object, col *js.Object) bool {
+func (satm *StockCatalogTableModel) FilterHandler(vm *hvue.VM, value string, p *js.Object, col *js.Object) bool {
 	prop := col.Get("property").String()
 	switch prop {
 	case "Status":
@@ -247,8 +279,8 @@ func (satm *StockArticlesTableModel) FilterHandler(vm *hvue.VM, value string, p 
 	}
 }
 
-func (satm *StockArticlesTableModel) FilterList(vm *hvue.VM, prop string) []*elements.ValText {
-	satm = StockArticlesTableModelFromJS(vm.Object)
+func (satm *StockCatalogTableModel) FilterList(vm *hvue.VM, prop string) []*elements.ValText {
+	satm = StockCatalogTableModelFromJS(vm.Object)
 	count := map[string]int{}
 	attribs := []string{}
 
@@ -265,7 +297,7 @@ func (satm *StockArticlesTableModel) FilterList(vm *hvue.VM, prop string) []*ele
 	}
 
 	attrib := ""
-	for _, ar := range satm.FilteredArticles {
+	for _, ar := range satm.Articles.Articles {
 		attrib = getValue(ar)
 		if _, exist := count[attrib]; !exist {
 			attribs = append(attribs, attrib)
@@ -287,7 +319,7 @@ func (satm *StockArticlesTableModel) FilterList(vm *hvue.VM, prop string) []*ele
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Table Functions
 
-func (satm *StockArticlesTableModel) GetFilteredArticles() []*fearticle.Article {
+func (satm *StockCatalogTableModel) GetFilteredArticles() []*fearticle.Article {
 	filter := func(ar *fearticle.Article) bool {
 		return true
 	}
@@ -305,11 +337,10 @@ func (satm *StockArticlesTableModel) GetFilteredArticles() []*fearticle.Article 
 	// filter articles in accs slice to prevent change on satm.Articles caused by sort
 	var accs []*fearticle.Article
 	for _, a := range satm.Articles.Articles {
-		if a.Status != articleconst.StatusValueUnavailable && filter(a) {
+		if filter(a) {
 			accs = append(accs, a)
 		}
 	}
-	satm.FilteredArticles = accs
 	return accs
 }
 

@@ -5,6 +5,11 @@ const (
 	StatusValueOutOfStock  string = "outofstock"
 	StatusValueUnavailable string = "unavailable"
 
+	StatusClassAvailable   string = "stock-row-available"
+	StatusClassOutOfStock  string = "stock-row-outofstock"
+	StatusClassUnavailable string = "stock-row-unavailable"
+	StatusClassError       string = "stock-row-error"
+
 	StatusLabelAvailable   string = "Disponible"
 	StatusLabelOutOfStock  string = "Epuisé"
 	StatusLabelUnavailable string = "Indisponible"

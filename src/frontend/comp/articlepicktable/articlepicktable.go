@@ -56,17 +56,17 @@ const (
 	<!--	RetailUnit   -->
 	<el-table-column
 		:resizable="true" :show-overflow-tooltip=true 
-		prop="RetailUnit" label="Détail" width="150px"
+		prop="RetailUnit" label="Détail" width="150px" align="center"
 	></el-table-column>
 	
 	<!--	StockUnit   -->
 	<el-table-column
 		:resizable="true" :show-overflow-tooltip=true 
-		prop="StockUnit" label="Gros" width="150px"
+		prop="StockUnit" label="Gros" width="150px" align="center"
 	>
 		<template slot-scope="scope">
 			<p class="article-unit">{{scope.row.StockUnit}}</p>
-			<p class="article-unit light">{{GetStockRetailQty(scope.row)}}</p>
+			<p v-if="scope.row.StockUnit != scope.row.RetailUnit" class="article-unit light">{{GetStockRetailQty(scope.row)}}</p>
 		</template>
 	</el-table-column>
 	

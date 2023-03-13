@@ -120,6 +120,19 @@ func GetStatusLabel(status string) string {
 	}
 }
 
+func GetStatusClass(status string) string {
+	switch status {
+	case articleconst.StatusValueAvailable:
+		return articleconst.StatusClassAvailable
+	case articleconst.StatusValueOutOfStock:
+		return articleconst.StatusClassOutOfStock
+	case articleconst.StatusValueUnavailable:
+		return articleconst.StatusClassUnavailable
+	default:
+		return articleconst.StatusClassError
+	}
+}
+
 func (a *Article) ToggleInStock() {
 	switch a.Status {
 	// Avaliable article can not be removed from stock

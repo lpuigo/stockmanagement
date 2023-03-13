@@ -18,6 +18,10 @@ pre {
     padding: 5px;
 }
 
+h2 {
+    margin: 0 0;
+}
+
 .lp_block {
     padding: 8px 16px;
     border-radius: 5px;
@@ -225,13 +229,13 @@ pre {
 }
 
 .article-unit {
-    margin: 0 0 5px 0;
+    margin: 0 0 0 0;
 }
 
 .light {
     font-size: 0.8em;
     opacity: 0.7;
-    margin-bottom: 0;
+    margin-top: 3px;
 }
 
 /* ====================================================================================================================
@@ -270,6 +274,44 @@ pre {
     padding: 10px 20px;
 }
 
+.el-table .stock-row-available {
+    background: #ffffff;
+}
+
+.el-table .stock-row-available:hover {
+    background: #e6e6e6;
+    transition: background-color .15s ease;
+}
+
+.el-table .stock-row-unavailable {
+    background: #cccccc;
+    color: #737373;
+}
+
+.el-table .stock-row-unavailable:hover {
+    background: #b3b3b3;
+    transition: background-color .15s ease;
+}
+
+.el-table .stock-row-outofstock {
+    background: #ffe5e5;
+    color: #735050;
+}
+
+.el-table .stock-row-outofstock:hover {
+    background: #e6cfcf;
+    transition: background-color .15s ease;
+}
+
+.el-table .stock-row-error {
+    background: #ffffff;
+}
+
+.el-table .stock-row-error:hover {
+    background: #e6e6e6;
+    transition: background-color .15s ease;
+}
+
 
 /* Workload Columns */
 .small-font {
@@ -277,13 +319,13 @@ pre {
     line-height: 1.0em;
 }
 
+/* ====================================================================================================================
+    === Progress Bar style ===
+ */
+
 .el-progress-bar__outer {
     background-color: #cccccc;
 }
-
-/*.el-progress-bar__inner {*/
-/*background-color: #51a825;*/
-/*}*/
 
 .progress-bar {
     line-height: 1em;
