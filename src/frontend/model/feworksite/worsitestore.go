@@ -35,7 +35,9 @@ func (ws *WorksiteStore) GetWorksiteById(id int) *Worksite {
 			return worksite
 		}
 	}
-	return NewWorksite()
+	dWs := NewWorksite()
+	dWs.Id = id
+	return dWs
 }
 
 func (ws *WorksiteStore) CallGetWorksites(vm *hvue.VM, onSuccess func()) {

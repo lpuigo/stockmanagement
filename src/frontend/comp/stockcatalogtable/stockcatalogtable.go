@@ -20,7 +20,7 @@ const (
 	<el-header style="height: auto; padding: 0 15px; margin-bottom: 15px">
 		<el-row :gutter="10" type="flex" align="middle">
 			<el-col :span="5">
-				<h2><i class="fa-solid fa-cubes-stacked icon--left"></i>Catalogue d'Articles en Stock</h2>
+				<h2><i class="fa-solid fa-boxes-stacked icon--left"></i>Catalogue d'Articles en Stock</h2>
 			</el-col>
 			<el-col :span="5">
 				<el-button type="primary" size="mini" @click="ToggleSelection" :disabled="SelectedArticles.length == 0">Ajout/Retrait</el-button>

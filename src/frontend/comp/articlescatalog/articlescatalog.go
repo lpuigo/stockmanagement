@@ -19,7 +19,7 @@ const (
 	<el-header style="height: auto; padding: 0 15px; margin-bottom: 15px">
 		<el-row gutter=10 type="flex" align="middle">
 			<el-col span=6>
-				<h2><i class="fa-solid fa-cubes-stacked icon--left"></i>Catalogue d'Articles</h2>
+				<h2><i class="fa-solid fa-boxes-stacked icon--left"></i>Catalogue d'Articles</h2>
 			</el-col>
 			<el-col :span="10">
                 <el-input v-model="Filter" size="mini" style="width: 25vw; min-width: 130px"

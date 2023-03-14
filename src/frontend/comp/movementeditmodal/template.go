@@ -10,7 +10,7 @@ const template string = `<el-dialog
     -->
     <div slot="title">
 		<h2 style="margin: 0 10px" v-if="current_movement">
-			<i class="far fa-edit icon--left"></i>Edition de <span class="batec-header-text">{{FormatType(edited_movement.Type)}} du {{FormatDate(edited_movement.Date)}}</span>
+			<i class="far fa-edit icon--left"></i>Edition de <span class="batec-header-text">{{FormatMovementType(edited_movement.Type)}} du {{FormatDate(edited_movement.Date)}}</span>
 		</h2>
     </div>
     <!-- 
@@ -18,8 +18,8 @@ const template string = `<el-dialog
     -->
 	<el-tabs tab-position="top" v-model="EditMode" style="margin: 0px 15px;">
 		<!-- ====================	Movement Edition  ============================== -->
-		<el-tab-pane :label="FormatType(current_movement.Type)" name="acc" lazy=true style="padding: 0px 0px">
-			<el-container style="margin: 0px;height: 50vh">
+		<el-tab-pane :label="FormatMovementType(current_movement.Type)" name="acc" lazy=true style="padding: 0px 0px">
+			<el-container style="margin: 0px;height: 60vh">
 				<el-header>
 					<!--	Actor & Responsible -->
 					<el-row :gutter="5" type="flex" align="middle" class="spaced">
@@ -40,7 +40,7 @@ const template string = `<el-dialog
 					</el-row>
 			
 					<!--	Date  -->
-					<el-row :gutter="5" type="flex" align="middle" class="spaced">
+					<el-row v-if="IsWorksiteRelated()" :gutter="5" type="flex" align="middle" class="spaced">
 						<el-col :span="2" class="align-right">Chantier:</el-col>
 						<el-col :span="10">
 							<el-select v-model="current_movement.WorksiteId"  

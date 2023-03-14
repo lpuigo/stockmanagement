@@ -44,9 +44,46 @@ func (w Worksite) IsActiveOn(today string) bool {
 	return today >= w.DateBegin && today <= w.DateEnd
 }
 
-func (w Worksite) GetLabel() string {
-	if w.Id == -1 {
+func (w Worksite) GetClient() string {
+	switch w.Id {
+	case -2:
+		return "-"
+	case -1:
 		return "Non défini"
+	default:
+		return w.Client
 	}
-	return w.Client + " - " + w.City + " / " + w.Ref
+}
+
+func (w Worksite) GetCity() string {
+	switch w.Id {
+	case -2:
+		return "-"
+	case -1:
+		return "Non défini"
+	default:
+		return w.City
+	}
+}
+
+func (w Worksite) GetRef() string {
+	switch w.Id {
+	case -2:
+		return "-"
+	case -1:
+		return "Non défini"
+	default:
+		return w.Ref
+	}
+}
+
+func (w Worksite) GetLabel() string {
+	switch w.Id {
+	case -2:
+		return "-"
+	case -1:
+		return "Non défini"
+	default:
+		return w.Client + " - " + w.City + " / " + w.Ref
+	}
 }

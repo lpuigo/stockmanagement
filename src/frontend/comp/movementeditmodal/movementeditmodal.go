@@ -11,6 +11,7 @@ import (
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feworksite"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements"
 	"github.com/lpuigo/hvue"
+	"sort"
 )
 
 type MovementEditModalModel struct {
@@ -101,7 +102,7 @@ func (memm *MovementEditModalModel) CancelChange(vm *hvue.VM) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // HTML Methods
 
-func (memm *MovementEditModalModel) FormatType(t string) string {
+func (memm *MovementEditModalModel) FormatMovementType(t string) string {
 	return femovement.GetTypeLabel(t)
 }
 
@@ -115,12 +116,21 @@ func (memm *MovementEditModalModel) GetActiveWorksites(vm *hvue.VM) []*elements.
 	for _, ws := range memm.Worksites.GetActiveWorksites() {
 		ivls = append(ivls, elements.NewIntValueLabel(ws.Id, ws.GetLabel()))
 	}
+	sort.Slice(ivls, func(i, j int) bool {
+		return ivls[i].Label < ivls[j].Label
+	})
+	ivls = append([]*elements.IntValueLabel{elements.NewIntValueLabel(-1, "A Déclarer")}, ivls...)
 	return ivls
 }
 
 func (memm *MovementEditModalModel) UpdateWorksite(vm *hvue.VM, wsId int) {
 	memm = MovementEditModalModelFromJS(vm.Object)
 	memm.CurrentMovement.Responsible = memm.Worksites.GetWorksiteById(wsId).Responsible
+}
+
+func (memm *MovementEditModalModel) IsWorksiteRelated(vm *hvue.VM) bool {
+	memm = MovementEditModalModelFromJS(vm.Object)
+	return memm.CurrentMovement.IsWorksiteRelated()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

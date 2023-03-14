@@ -5,6 +5,7 @@ import (
 	"github.com/lpuig/batec/stockmanagement/src/backend/model/status/statusconst"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/femovement/movementconst"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/model/festatus"
+	"github.com/lpuig/batec/stockmanagement/src/frontend/model/feuser"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/elements"
 	"github.com/lpuig/batec/stockmanagement/src/frontend/tools/fedate"
@@ -46,14 +47,20 @@ func NewMovement() *Movement {
 	return m
 }
 
-func CreateNewMovement(stockId int, mvtType string) *Movement {
+func CreateNewMovement(stockId int, mvtType string, user *feuser.User) *Movement {
 	nm := NewMovement()
 	nm.StockId = stockId
 	nm.Type = mvtType
 	nm.Date = fedate.TodayAfter(0)
-	nm.Actor = "A Saisir"
-	nm.Responsible = "A Saisir"
-
+	switch nm.IsWorksiteRelated() {
+	case true:
+		nm.Actor = "A Saisir"
+		nm.Responsible = "A Saisir"
+	default:
+		nm.Actor = user.Name
+		nm.Responsible = "-"
+		nm.WorksiteId = -2
+	}
 	return nm
 }
 
@@ -155,4 +162,23 @@ func GetFilterTypeValueLabel() []*elements.ValueLabel {
 		elements.NewValueLabel(movementconst.FilterValueStatus, movementconst.FilterLabelStatus),
 		//elements.NewValueLabel(movementconst.FilterValueArticle, movementconst.FilterLabelArticle),
 	}
+}
+
+func (m *Movement) IsWorksiteRelated() bool {
+	switch m.Type {
+	case movementconst.TypeValueWithdrawal, movementconst.TypeValueReturn:
+		return true
+	default:
+		return false
+	}
+}
+
+func (m *Movement) IsExternalMove() bool {
+	switch m.Type {
+	case movementconst.TypeValueWithdrawal:
+		return true
+	default:
+		return false
+	}
+
 }

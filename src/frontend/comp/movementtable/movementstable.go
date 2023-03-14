@@ -36,7 +36,7 @@ const (
 	></el-table-column>
 
 	<!--	Date   -->
-	<el-table-column label="Date" prop="Date" width="140px"
+	<el-table-column label="Date" prop="Date" width="120px"
 		:resizable="true" :show-overflow-tooltip=true
 		sortable :sort-by="['Date']"
 	>
@@ -53,7 +53,7 @@ const (
 	>
 		<template slot-scope="scope">
 			<div class="header-menu-container on-hover">
-				<span>{{FormatType(scope.row)}}</span>
+				<span>{{FormatMovementType(scope.row)}}</span>
 				<i class="show link fa-solid fa-pen-to-square icon--left" @click="EditMovement(scope.row)"></i>
 			</div>
 		</template>
@@ -74,18 +74,39 @@ const (
 	></el-table-column>
 
 	<!--	Worksite   -->
-	<el-table-column label="Chantier" prop="WorksiteId" width="300px"
+	<el-table-column label="Client" prop="WorksiteId" width="200px"
 		:resizable="true" :show-overflow-tooltip=true
-		sortable :sort-by="['WorksiteId', 'Date']" 
-		:filters="FilterList('WorksiteId')" :filter-method="FilterHandler" filter-placement="bottom-end"
+		sortable
+		:filters="FilterList('WorksiteClient')" :filter-method="FilterHandler" filter-placement="bottom-end"
 	>
 		<template slot-scope="scope">
-			<span>{{FormatWorksite(scope.row.WorksiteId)}}</span>
+			<span>{{FormatWorksiteClient(scope.row.WorksiteId)}}</span>
+		</template>
+	</el-table-column>
+
+	<!--	Worksite   -->
+	<el-table-column label="Ville" prop="WorksiteId" width="200px"
+		:resizable="true" :show-overflow-tooltip=true
+		sortable
+		:filters="FilterList('WorksiteCity')" :filter-method="FilterHandler" filter-placement="bottom-end"
+	>
+		<template slot-scope="scope">
+			<span>{{FormatWorksiteCity(scope.row.WorksiteId)}}</span>
+		</template>
+	</el-table-column>
+
+	<!--	Worksite   -->
+	<el-table-column label="Chantier" prop="WorksiteId"
+		:resizable="true" :show-overflow-tooltip=true
+		sortable
+	>
+		<template slot-scope="scope">
+			<span>{{FormatWorksiteRef(scope.row.WorksiteId)}}</span>
 		</template>
 	</el-table-column>
 
 	<!--	Status   -->
-	<el-table-column label="Status" prop="StatusHistory" width="200px"
+	<el-table-column label="Status" prop="StatusHistory" width="150px"
 		:resizable="true" :show-overflow-tooltip=true
 		:filters="FilterList('StatusHistory')" :filter-method="FilterHandler" filter-placement="bottom-end"
 	>
@@ -95,7 +116,7 @@ const (
 	</el-table-column>
 
 	<!--	ArticleFlows   -->
-	<el-table-column label="Articles" width="200px"
+	<el-table-column label="Articles" width="150px"
 		:resizable="true" :show-overflow-tooltip=true
 	>
 		<template slot-scope="scope">
@@ -106,10 +127,24 @@ const (
 					title="Liste des Articles"
 				>
 					<div v-for="(articleInfo, index) in GetArticlesInfoFor(scope.row)" :key="articleInfo" style="font-size: 0.85em">
-						{{index+1}} - <span>{{articleInfo}}</span>
+						{{index+1}}) <span>{{articleInfo}}</span>
 					</div>                        
 					<i slot="reference" class="fas fa-info-circle icon--right show"></i>
 				</el-popover>				
+			</div>
+		</template>
+	</el-table-column>
+
+	<!--	Price   -->
+	<el-table-column label="Montant €" prop="StatusHistory" width="150px"
+		:resizable="true" :show-overflow-tooltip=true align="center"
+		sortable
+	>
+		<template slot-scope="scope">
+			<div class="header-menu-container">
+				<i v-if="ExternalMove(scope.row)" class="fa-solid fa-right-from-bracket"></i>
+				<i v-else class="fa-solid fa-right-to-bracket"></i>
+				<span>{{FormatPrice(scope.row)}}</span>
 			</div>
 		</template>
 	</el-table-column>
@@ -195,17 +230,44 @@ func (mtm *MovementsTableModel) FormatDate(d string) string {
 	return fedate.DateString(d)
 }
 
-func (mtm *MovementsTableModel) FormatWorksite(vm *hvue.VM, wsId int) string {
+func (mtm *MovementsTableModel) FormatWorksiteClient(vm *hvue.VM, wsId int) string {
 	mtm = MovementsTableModelFromJS(vm.Object)
-	return mtm.Worksites.GetWorksiteById(wsId).GetLabel()
+	return mtm.Worksites.GetWorksiteById(wsId).GetClient()
 }
 
-func (mtm *MovementsTableModel) FormatType(m *femovement.Movement) string {
+func (mtm *MovementsTableModel) FormatWorksiteCity(vm *hvue.VM, wsId int) string {
+	mtm = MovementsTableModelFromJS(vm.Object)
+	return mtm.Worksites.GetWorksiteById(wsId).GetCity()
+}
+
+func (mtm *MovementsTableModel) FormatWorksiteRef(vm *hvue.VM, wsId int) string {
+	mtm = MovementsTableModelFromJS(vm.Object)
+	return mtm.Worksites.GetWorksiteById(wsId).GetRef()
+}
+
+func (mtm *MovementsTableModel) FormatMovementType(m *femovement.Movement) string {
 	return m.GetTypeLabel()
 }
 
 func (mtm *MovementsTableModel) FormatStatus(m *femovement.Movement) string {
 	return m.GetCurrentStatus().GetLabel()
+}
+
+func (mtm *MovementsTableModel) ExternalMove(m *femovement.Movement) bool {
+	return m.IsExternalMove()
+}
+
+func (mtm *MovementsTableModel) FormatPrice(vm *hvue.VM, m *femovement.Movement) string {
+	mtm = MovementsTableModelFromJS(vm.Object)
+	var price float64
+	for _, flow := range m.ArticleFlows {
+		art, found := mtm.Articles.ArticleIndex[flow.ArtId]
+		if !found {
+			continue
+		}
+		price += art.GetRetailPrice(flow.Qty)
+	}
+	return strconv.FormatFloat(price, 'f', 2, 64) + " €"
 }
 
 func (mtm *MovementsTableModel) GetArticlesInfoFor(vm *hvue.VM, m *femovement.Movement) []string {
@@ -261,9 +323,16 @@ func (mtm *MovementsTableModel) FilterList(vm *hvue.VM, prop string) []*elements
 			return m.GetCurrentStatus().Status
 		}
 		getLabel = func(v string) string { return festatus.GetLabel(v) }
-	case "WorksiteId":
+	case "WorksiteClient":
 		getValue = func(m *femovement.Movement) string {
-			return mtm.Worksites.GetWorksiteById(m.WorksiteId).GetLabel()
+			return mtm.Worksites.GetWorksiteById(m.WorksiteId).GetClient()
+		}
+		getLabel = func(v string) string {
+			return v
+		}
+	case "WorksiteCity":
+		getValue = func(m *femovement.Movement) string {
+			return mtm.Worksites.GetWorksiteById(m.WorksiteId).GetCity()
 		}
 		getLabel = func(v string) string {
 			return v

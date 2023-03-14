@@ -167,11 +167,8 @@ func (mum *MovementsUpdateModel) AddMovement(vm *hvue.VM, mvtType string) {
 	mum = MovementsUpdateModelFromJS(vm.Object)
 
 	switch mvtType {
-	case movementconst.TypeValueWithdrawal:
-		nm := femovement.CreateNewMovement(mum.Stock.Id, mvtType)
-		mum.ShowEditMovement(nm, true)
-	case movementconst.TypeValueSupply:
-		nm := femovement.CreateNewMovement(mum.Stock.Id, mvtType)
+	case movementconst.TypeValueWithdrawal, movementconst.TypeValueReturn, movementconst.TypeValueSupply:
+		nm := femovement.CreateNewMovement(mum.Stock.Id, mvtType, mum.User)
 		mum.ShowEditMovement(nm, true)
 	case movementconst.TypeValueInventory:
 	}

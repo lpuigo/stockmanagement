@@ -98,6 +98,18 @@ func (a *Article) Clone(oa *Article) {
 	//a.DTime = ""
 }
 
+func (a *Article) GetInvoicePrice(qty int) float64 {
+	return float64(qty) * a.InvoiceUnitPrice
+}
+
+func (a *Article) GetRetailPrice(qty int) float64 {
+	return a.GetInvoicePrice(qty) * a.InvoiceUnitRetailQty
+}
+
+func (a *Article) GetStockPrice(qty int) float64 {
+	return a.GetRetailPrice(qty) * a.RetailUnitStockQty
+}
+
 func GetFilterTypeValueLabel() []*elements.ValueLabel {
 	return []*elements.ValueLabel{
 		elements.NewValueLabel(articleconst.FilterValueAll, articleconst.FilterLabelAll),
